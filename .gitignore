@@ -1,0 +1,21 @@
+HELP.md
+
+target/
+# Maven Wrapper
+.mvn/wrapper/maven-wrapper.jar
+
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out
+
+# Systemowe pliki macOS
+.DS_Store
+.env
+application-local.properties
+*.class
