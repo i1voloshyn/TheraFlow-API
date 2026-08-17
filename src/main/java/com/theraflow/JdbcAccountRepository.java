@@ -20,8 +20,8 @@ import java.util.UUID;
 public class JdbcAccountRepository implements AccountRepository {
     private static final String INSERT_NEW_ACCOUNT_QUERY = """
             INSERT into accounts(email, password_hash, account_type)
-            VALUES (:email,:password_hash,:account_type)
-            RETURNING (id,email,password_hash, account_type,created_at,updated_at)
+            VALUES (:email, :password_hash, CAST(:account_type AS account_type))
+            RETURNING id,email,password_hash, account_type,created_at,updated_at
             """;
 
     private final NamedParameterJdbcTemplate namedTemplate;
@@ -41,8 +41,8 @@ public class JdbcAccountRepository implements AccountRepository {
     public Account save(Account account) {
         SqlParameterSource parameterSource = new MapSqlParameterSource()
                 .addValue("email", account.getEmail())
-                .addValue("passwordHash", account.getPasswordHash())
-                .addValue("accountType", account.getType().name().toLowerCase(Locale.ROOT));
+                .addValue("password_hash", account.getPasswordHash())
+                .addValue("account_type", account.getType().name().toLowerCase(Locale.ROOT));
         return transactionTemplate.execute((status) -> namedTemplate.queryForObject(
                 INSERT_NEW_ACCOUNT_QUERY, parameterSource, accMapper
         ));
@@ -55,7 +55,8 @@ public class JdbcAccountRepository implements AccountRepository {
 
     private AccountType toAccountType(ResultSet rs) throws SQLException {
         String value = rs.getString("account_type");
-        return AccountType.valueOf(value);
+        return AccountType.valueOf(value.toUpperCase(Locale.ROOT));
     }
+
 }
 

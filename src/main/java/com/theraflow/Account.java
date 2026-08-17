@@ -19,10 +19,10 @@ public class Account {
     private UUID id;
     @NonNull
     private String email;
-    @Nullable
+    @NonNull
     private String passwordHash;
     @NonNull
-    private AccountType type;
+    private Enum<AccountType> type;
     @Nullable
     private Instant createdAt;
     @Nullable
