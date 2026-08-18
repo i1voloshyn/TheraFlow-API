@@ -26,7 +26,7 @@ public class AccountService {
                 request.type()
         );
 
-        Account createdAccount = accountRepository.save(accountToSave);
+        Account createdAccount = accountRepository.create(accountToSave);
 
         return mapper.toResponse(createdAccount);
     }

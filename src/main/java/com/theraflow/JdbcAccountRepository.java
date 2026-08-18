@@ -2,7 +2,7 @@ package com.theraflow;
 
 import com.theraflow.model.Account;
 import lombok.AllArgsConstructor;
-import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -22,30 +22,21 @@ public class JdbcAccountRepository implements AccountRepository {
     private static final String INSERT_NEW_ACCOUNT_QUERY = """
             INSERT into accounts(email, password_hash, account_type)
             VALUES (:email, :password_hash, CAST(:account_type AS account_type))
-            RETURNING id,email,password_hash, account_type,created_at,updated_at
+            RETURNING id,created_at,updated_at
             """;
 
     private final NamedParameterJdbcTemplate namedTemplate;
     private final TransactionTemplate transactionTemplate;
 
-    private final RowMapper<Account> accMapper = ((rs, rowNum) -> {
-        UUID id = rs.getObject("id", UUID.class);
-        String email = rs.getString("email");
-        String passwordHash = rs.getString("password_hash");
-        AccountType type = toAccountType(rs);
-        Instant createdAt = toInstant(rs, "created_at");
-        Instant updatedAt = toInstant(rs, "updated_at");
-        return new Account(id, email, passwordHash, type, createdAt, updatedAt);
-    });
-
     @Override
-    public Account save(Account account) {
+    public Account create(Account account) {
         SqlParameterSource parameterSource = new MapSqlParameterSource()
                 .addValue("email", account.getEmail())
                 .addValue("password_hash", account.getPasswordHash())
                 .addValue("account_type", account.getType().name().toLowerCase(Locale.ROOT));
-        return transactionTemplate.execute((status) -> namedTemplate.queryForObject(
-                INSERT_NEW_ACCOUNT_QUERY, parameterSource, accMapper
+        return transactionTemplate.execute((status) -> namedTemplate.query(
+                INSERT_NEW_ACCOUNT_QUERY, parameterSource,
+                (ResultSetExtractor<Account>) (resultSet) -> toCreatedAccount(resultSet, account)
         ));
     }
 
@@ -54,10 +45,12 @@ public class JdbcAccountRepository implements AccountRepository {
         return value.toInstant();
     }
 
-    private AccountType toAccountType(ResultSet rs) throws SQLException {
-        String value = rs.getString("account_type");
-        return AccountType.valueOf(value.toUpperCase(Locale.ROOT));
+    private Account toCreatedAccount(ResultSet resultSet, Account account) throws SQLException {
+        resultSet.next();
+        UUID id = resultSet.getObject("id", UUID.class);
+        Instant createdAt = toInstant(resultSet, "created_at");
+        Instant updatedAt = toInstant(resultSet, "updated_at");
+        return new Account(id, account.getEmail(), account.getPasswordHash(), account.getType(), createdAt, updatedAt);
     }
-
 }
 

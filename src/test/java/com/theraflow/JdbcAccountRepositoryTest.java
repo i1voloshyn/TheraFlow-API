@@ -24,13 +24,13 @@ class JdbcAccountRepositoryTest {
 
     @Sql("/fixtures/accounts/accounts_clean_up.sql")
     @Test
-    void save_shouldSaveAndReturnNewAccount() {
+    void save_shouldCreateAndReturnNewAccount() {
         String countAllAccountsQuery = """
                 SELECT COUNT(*) FROM accounts
                 """;
         Account accountToSave = new Account("test@email", "passwordHash", AccountType.THERAPIST);
 
-        Account actual = repository.save(accountToSave);
+        Account actual = repository.create(accountToSave);
         Long quantity = template.queryForObject(countAllAccountsQuery, Long.class);
 
         assertThat(quantity).isOne();
@@ -40,7 +40,7 @@ class JdbcAccountRepositoryTest {
 
     @Sql("/fixtures/accounts/accounts_clean_up.sql")
     @Test
-    void save_shouldThrowException_whenEmailAlreadyExistInDataBase() {
+    void create_shouldThrowException_whenEmailAlreadyExistInDataBase() {
         Account duplicateAccount = new Account("test@email", "different_hash", AccountType.THERAPIST);
         String insertTestAccountQuery = """
                      INSERT INTO accounts(email, password_hash, account_type)
@@ -49,7 +49,6 @@ class JdbcAccountRepositoryTest {
         template.update(insertTestAccountQuery);
 
         assertThatExceptionOfType(DuplicateKeyException.class)
-                .isThrownBy(() -> repository.save(duplicateAccount));
+                .isThrownBy(() -> repository.create(duplicateAccount));
     }
-
 }
