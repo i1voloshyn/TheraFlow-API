@@ -1,9 +1,8 @@
-package com.theraflow;
+package com.theraflow.model;
 
+import com.theraflow.AccountType;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -22,7 +21,7 @@ public class Account {
     @NonNull
     private String passwordHash;
     @NonNull
-    private Enum<AccountType> type;
+    private AccountType type;
     @Nullable
     private Instant createdAt;
     @Nullable
