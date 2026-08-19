@@ -1,15 +1,18 @@
 package com.theraflow.util;
 
+import com.theraflow.config.PasswordLengthProperties;
 import com.theraflow.exception.PasswordPolicyException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 import java.util.Set;
 
+@RequiredArgsConstructor
 @Component
 public class PasswordValidator {
-    private static final int MIN_PASSWORD_LENGTH = 10;
-    private static final int MAX_PASSWORD_LENGTH = 64;
+
+    private final PasswordLengthProperties passwordLengthProperties;
 
     private final Set<PasswordViolation> violations = new HashSet<>();
 
@@ -34,10 +37,10 @@ public class PasswordValidator {
     }
 
     private void checkPasswordLength(String password) {
-        if (password.length() < MIN_PASSWORD_LENGTH) {
+        if (password.length() < passwordLengthProperties.minLength()) {
             violations.add(PasswordViolation.TOO_SHORT);
         }
-        if (password.length() > MAX_PASSWORD_LENGTH) {
+        if (password.length() > passwordLengthProperties.maxLength()) {
             violations.add(PasswordViolation.TOO_LONG);
         }
     }

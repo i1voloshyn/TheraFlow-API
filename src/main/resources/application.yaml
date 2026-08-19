@@ -5,3 +5,8 @@ spring:
   flyway:
     enabled: true
     locations: "classpath:db/migration"
+
+theraflow:
+  password-length:
+    min-length: 10
+    max-length: 64
