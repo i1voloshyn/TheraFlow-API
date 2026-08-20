@@ -2,7 +2,7 @@ package com.theraflow.repository;
 
 import com.theraflow.model.Account;
 import lombok.AllArgsConstructor;
-import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -36,7 +36,11 @@ public class JdbcAccountRepository implements AccountRepository {
                 .addValue("account_type", account.getType().name().toLowerCase(Locale.ROOT));
         return transactionTemplate.execute((status) -> namedTemplate.query(
                 INSERT_NEW_ACCOUNT_QUERY, parameterSource,
-                (ResultSetExtractor<Account>) (resultSet) -> toCreatedAccount(resultSet, account)
+                (resultSet) -> {
+                    if (resultSet.next()) {
+                        return toCreatedAccount(resultSet, account);
+                    } else throw new DataIntegrityViolationException("Error while trying to save Your data");
+                }
         ));
     }
 
@@ -46,7 +50,6 @@ public class JdbcAccountRepository implements AccountRepository {
     }
 
     private Account toCreatedAccount(ResultSet resultSet, Account account) throws SQLException {
-        resultSet.next();
         UUID id = resultSet.getObject("id", UUID.class);
         Instant createdAt = toInstant(resultSet, "created_at");
         Instant updatedAt = toInstant(resultSet, "updated_at");

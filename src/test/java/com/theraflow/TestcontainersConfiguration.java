@@ -9,7 +9,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 
 @TestConfiguration(proxyBeanMethods = false)
 @Testcontainers
-class TestcontainersConfiguration {
+public class TestcontainersConfiguration {
     @Container
     private static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:18.4");
 
