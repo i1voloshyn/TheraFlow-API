@@ -1,6 +1,5 @@
 package com.theraflow.model;
 
-import com.theraflow.AccountType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;

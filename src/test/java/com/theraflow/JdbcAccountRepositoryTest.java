@@ -1,6 +1,9 @@
 package com.theraflow;
 
 import com.theraflow.model.Account;
+import com.theraflow.model.AccountType;
+import com.theraflow.repository.AccountRepository;
+import com.theraflow.repository.JdbcAccountRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;

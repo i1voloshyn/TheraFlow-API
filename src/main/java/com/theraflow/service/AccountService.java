@@ -1,9 +1,10 @@
-package com.theraflow;
+package com.theraflow.service;
 
 import com.theraflow.mapper.DtoAccountMapper;
 import com.theraflow.model.Account;
-import com.theraflow.model.AccountRequest;
-import com.theraflow.model.AccountResponse;
+import com.theraflow.model.dto.AccountRequest;
+import com.theraflow.model.dto.AccountResponse;
+import com.theraflow.repository.AccountRepository;
 import com.theraflow.util.PasswordValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;

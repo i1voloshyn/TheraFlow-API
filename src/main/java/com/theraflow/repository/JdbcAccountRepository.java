@@ -1,4 +1,4 @@
-package com.theraflow;
+package com.theraflow.repository;
 
 import com.theraflow.model.Account;
 import lombok.AllArgsConstructor;

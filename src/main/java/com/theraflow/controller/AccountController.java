@@ -1,8 +1,8 @@
 package com.theraflow.controller;
 
-import com.theraflow.AccountService;
-import com.theraflow.model.AccountRequest;
-import com.theraflow.model.AccountResponse;
+import com.theraflow.service.AccountService;
+import com.theraflow.model.dto.AccountRequest;
+import com.theraflow.model.dto.AccountResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
