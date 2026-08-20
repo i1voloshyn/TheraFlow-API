@@ -1,6 +1,7 @@
 package com.theraflow.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
@@ -11,6 +12,7 @@ import java.util.UUID;
 
 @AllArgsConstructor
 @RequiredArgsConstructor
+@Builder
 @Data
 public class Therapist {
     @Nullable

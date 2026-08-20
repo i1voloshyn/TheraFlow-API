@@ -2,7 +2,7 @@ package com.theraflow.repository;
 
 import com.theraflow.model.Therapist;
 import lombok.RequiredArgsConstructor;
-import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -24,6 +24,16 @@ public class JdbcTherapistRepository implements TherapistRepository {
             RETURNING id, created_at,updated_at
             """;
 
+    private static final String UPDATE_THERAPIST_QUERY = """
+            UPDATE therapists
+            SET first_name = :first_name,
+                last_name = :last_name,
+                professional_title = :professional_title,
+                bio = :bio
+            WHERE id = :id
+            RETURNING id,first_name,last_name, license_number,professional_title,bio,created_at,updated_at;
+            """;
+
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Override
@@ -37,12 +47,32 @@ public class JdbcTherapistRepository implements TherapistRepository {
                 .addValue("bio", therapist.getBio());
         return jdbcTemplate.query(INSERT_NEW_THERAPIST_QUERY,
                 parameterSource,
-                (ResultSetExtractor<Therapist>) (resultSet) -> toCreatedTherapist(resultSet, therapist)
+                (resultSet) -> {
+                    if (resultSet.next()) {
+                        return toCreatedTherapist(resultSet, therapist);
+                    } else throw new DataIntegrityViolationException("Error while trying to create profile");
+                }
         );
     }
 
+    @Override
+    public Therapist updateProfile(Therapist therapist) {
+        SqlParameterSource parameterSource = new MapSqlParameterSource()
+                .addValue("id", therapist.getId())
+                .addValue("first_name", therapist.getFirstName())
+                .addValue("last_name", therapist.getLastName())
+                .addValue("professional_title", therapist.getProfessionalTitle())
+                .addValue("bio", therapist.getBio());
+        return jdbcTemplate.query(UPDATE_THERAPIST_QUERY,
+                parameterSource,
+                (resultSet) -> {
+                    if (resultSet.next()) {
+                        return toCreatedTherapist(resultSet, therapist);
+                    } else throw new DataIntegrityViolationException("Error while trying to update profile");
+                });
+    }
+
     private Therapist toCreatedTherapist(ResultSet rs, Therapist therapist) throws SQLException {
-        rs.next();
         UUID id = rs.getObject("id", UUID.class);
         Instant createdAt = toInstant(rs, "created_at");
         Instant updatedAt = toInstant(rs, "updated_at");

@@ -3,7 +3,6 @@ package com.theraflow.repository;
 import com.theraflow.TestcontainersConfiguration;
 import com.theraflow.model.Therapist;
 import org.junit.jupiter.api.Test;
-import org.postgresql.util.PSQLException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.jdbc.test.autoconfigure.JdbcTest;
@@ -13,12 +12,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatException;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @Import(value = {JdbcTherapistRepository.class, TestcontainersConfiguration.class})
@@ -35,20 +32,13 @@ class JdbcTherapistRepositoryTest {
     @Sql("/fixtures/therapists/therapists_clean_up.sql")
     @Test
     void createProfile_shouldCreate_andReturnSuccessfully_createdTherapistProfile() {
-        String insertAccountWithReturningId = """
-                INSERT INTO accounts (email, password_hash, account_type)
-                VALUES ('test@email', 'random_hash', 'therapist')
-                RETURNING id;
-                """;
-
+        UUID accountId = insertTestAccount();
         String countAllTherapistsQuery = """
                 SELECT COUNT(*) FROM therapists
                 """;
 
-        UUID id = template.queryForObject(insertAccountWithReturningId, UUID.class);
-
         Therapist therapistToSave = new Therapist(
-                id,
+                accountId,
                 "Jeremiah",
                 "Nevada",
                 "RTF 5456",
@@ -87,6 +77,53 @@ class JdbcTherapistRepositoryTest {
         Long quantity = template.queryForObject(countAllTherapistsQuery, Long.class);
 
         assertThat(quantity).isZero();
+    }
+
+    @Sql("/fixtures/therapists/therapists_clean_up.sql")
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void updateProfile_shouldSuccessfullyUpdateProfile_forExactTherapistId() throws InterruptedException {
+        UUID accountId = insertTestAccount();
+
+        Therapist therapistToSave = new Therapist(
+                accountId,
+                "Jeremiah",
+                "Nevada",
+                "RTF 5456",
+                "Doctor",
+                "Just therapist"
+        );
+
+        Therapist actual = repository.createProfile(therapistToSave);
+
+
+        String changedProfTitle = "Super Doctor";
+
+        Therapist therapistToUpdate = Therapist.builder()
+                .id(actual.getId())
+                .accountId(actual.getAccountId())
+                .firstName(actual.getFirstName())
+                .lastName(actual.getLastName())
+                .professionalTitle(changedProfTitle)
+                .licenseNumber(actual.getLicenseNumber())
+                .bio(actual.getBio())
+                .build();
+
+        Therapist updated = repository.updateProfile(therapistToUpdate);
+
+        assertThat(updated.getId()).isEqualTo(actual.getId());
+        assertThat(updated.getProfessionalTitle()).isEqualTo(changedProfTitle);
+        assertThat(updated.getUpdatedAt()).isAfter(updated.getCreatedAt());
+
+    }
+
+    private UUID insertTestAccount() {
+        String insertAccountWithReturningId = """
+                INSERT INTO accounts (email, password_hash, account_type)
+                VALUES ('test@email', 'random_hash', 'therapist')
+                RETURNING id;
+                """;
+        return template.queryForObject(insertAccountWithReturningId, UUID.class);
     }
 
 
