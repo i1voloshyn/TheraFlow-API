@@ -4,17 +4,19 @@ import com.theraflow.exception.PasswordPolicyException;
 import com.theraflow.mapper.DtoAccountMapper;
 import com.theraflow.model.Account;
 import com.theraflow.model.AccountType;
-import com.theraflow.model.dto.AccountRequest;
-import com.theraflow.model.dto.AccountResponse;
+import com.theraflow.dto.AccountRequest;
+import com.theraflow.dto.AccountResponse;
 import com.theraflow.repository.AccountRepository;
 import com.theraflow.service.AccountService;
 import com.theraflow.util.PasswordValidator;
 import com.theraflow.util.PasswordViolation;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.InOrder;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,8 +27,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -44,7 +46,7 @@ class AccountServiceTest {
     private PasswordValidator passwordValidator;
 
     @Spy
-    private DtoAccountMapper accountMapper = new DtoAccountMapper();
+    private DtoAccountMapper accountMapper;
 
     @InjectMocks
     private AccountService accountService;
@@ -57,19 +59,27 @@ class AccountServiceTest {
         AccountType type = AccountType.THERAPIST;
         AccountRequest request = new AccountRequest(email, rawPassword, type);
 
-        Account accountToSave = new Account(null, email, passwordHash, type, null, null);
+        Account accountToSave = Account.builder()
+                .id(null)
+                .email(email)
+                .passwordHash(passwordHash)
+                .type(type)
+                .createdAt(null)
+                .updatedAt(null)
+                .build();
 
         UUID id = UUID.fromString("cc837471-3c4b-4d77-a825-c4c1cf3a1dc5");
         Instant createdAt = Instant.parse("2026-08-18T10:00:00Z");
         Instant updatedAt = Instant.parse("2026-08-18T10:00:00Z");
 
-        Account createdAccount = new Account(
-                id,
-                email,
-                passwordHash,
-                type,
-                createdAt,
-                updatedAt);
+        Account createdAccount = Account.builder()
+                .id(id)
+                .email(email)
+                .passwordHash(passwordHash)
+                .type(type)
+                .createdAt(createdAt)
+                .updatedAt(updatedAt)
+                .build();
 
         AccountResponse expectedResponse = new AccountResponse(
                 id,
@@ -79,13 +89,25 @@ class AccountServiceTest {
                 updatedAt);
 
         when(passwordEncoder.encode(rawPassword)).thenReturn(passwordHash);
-        when(accountRepository.create(accountToSave)).thenReturn(createdAccount);
+        when(accountRepository.save(any(Account.class))).thenReturn(createdAccount);
 
         AccountResponse actual = accountService.createAccount(request);
 
+        ArgumentCaptor<Account> captor =
+                ArgumentCaptor.forClass(Account.class);
+
+        InOrder processingOrder = null;
+
+        verify(accountRepository)
+                .save(captor.capture());
+
+        assertThat(captor.getValue())
+                .usingRecursiveComparison()
+                .isEqualTo(accountToSave);
+
         assertThat(actual).isEqualTo(expectedResponse);
 
-        InOrder processingOrder = inOrder(
+        processingOrder = Mockito.inOrder(
                 passwordValidator,
                 passwordEncoder,
                 accountMapper,
@@ -94,7 +116,7 @@ class AccountServiceTest {
         processingOrder.verify(passwordValidator).validate(rawPassword);
         processingOrder.verify(passwordEncoder).encode(rawPassword);
         processingOrder.verify(accountMapper).toAccount(email, passwordHash, type);
-        processingOrder.verify(accountRepository).create(accountToSave);
+        processingOrder.verify(accountRepository).save(any(Account.class));
         processingOrder.verify(accountMapper).toResponse(createdAccount);
     }
 

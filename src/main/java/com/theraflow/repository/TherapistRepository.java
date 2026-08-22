@@ -1,8 +1,10 @@
 package com.theraflow.repository;
 
 import com.theraflow.model.Therapist;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface TherapistRepository {
-    Therapist createProfile(Therapist therapist);
-    Therapist updateProfile(Therapist therapist);
+import java.util.UUID;
+
+public interface TherapistRepository extends JpaRepository<Therapist, UUID> {
+
 }

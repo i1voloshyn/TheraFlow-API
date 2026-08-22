@@ -2,8 +2,8 @@ package com.theraflow.service;
 
 import com.theraflow.mapper.DtoAccountMapper;
 import com.theraflow.model.Account;
-import com.theraflow.model.dto.AccountRequest;
-import com.theraflow.model.dto.AccountResponse;
+import com.theraflow.dto.AccountRequest;
+import com.theraflow.dto.AccountResponse;
 import com.theraflow.repository.AccountRepository;
 import com.theraflow.util.PasswordValidator;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ public class AccountService {
                 request.type()
         );
 
-        Account createdAccount = accountRepository.create(accountToSave);
+        Account createdAccount = accountRepository.save(accountToSave);
 
         return mapper.toResponse(createdAccount);
     }

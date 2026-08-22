@@ -1,4 +1,4 @@
-package com.theraflow.model.dto;
+package com.theraflow.dto;
 
 import com.theraflow.model.AccountType;
 

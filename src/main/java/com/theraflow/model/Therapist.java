@@ -1,36 +1,49 @@
 package com.theraflow.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.NonNull;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
 import java.util.UUID;
 
+@Getter
+@NoArgsConstructor
 @AllArgsConstructor
-@RequiredArgsConstructor
 @Builder
-@Data
-public class Therapist {
+@NullMarked
+@Entity
+@Table(name = "therapists")
+public final class Therapist {
     @Nullable
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    @NonNull
     private UUID accountId;
-    @NonNull
     private String firstName;
-    @NonNull
     private String lastName;
-    @NonNull
     private String licenseNumber;
-    @NonNull
+    @Nullable
     private String professionalTitle;
-    @NonNull
+    @Nullable
     private String bio;
     @Nullable
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
     @Nullable
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 }
