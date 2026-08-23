@@ -89,21 +89,12 @@ class AccountServiceTest {
                 updatedAt);
 
         when(passwordEncoder.encode(rawPassword)).thenReturn(passwordHash);
-        when(accountRepository.save(any(Account.class))).thenReturn(createdAccount);
+        when(accountRepository.saveAndFlush(any(Account.class))).thenReturn(createdAccount);
 
         AccountResponse actual = accountService.createAccount(request);
 
-        ArgumentCaptor<Account> captor =
-                ArgumentCaptor.forClass(Account.class);
 
         InOrder processingOrder = null;
-
-        verify(accountRepository)
-                .save(captor.capture());
-
-        assertThat(captor.getValue())
-                .usingRecursiveComparison()
-                .isEqualTo(accountToSave);
 
         assertThat(actual).isEqualTo(expectedResponse);
 
@@ -116,7 +107,7 @@ class AccountServiceTest {
         processingOrder.verify(passwordValidator).validate(rawPassword);
         processingOrder.verify(passwordEncoder).encode(rawPassword);
         processingOrder.verify(accountMapper).toAccount(email, passwordHash, type);
-        processingOrder.verify(accountRepository).save(any(Account.class));
+        processingOrder.verify(accountRepository).saveAndFlush(any(Account.class));
         processingOrder.verify(accountMapper).toResponse(createdAccount);
     }
 

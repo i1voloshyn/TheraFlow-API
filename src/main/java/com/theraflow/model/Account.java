@@ -13,9 +13,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.generator.EventType;
 import org.hibernate.type.SqlTypes;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -44,12 +44,12 @@ public class Account {
     @Column(name = "account_type", nullable = false)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private AccountType type;
+    @Generated(event = EventType.INSERT)
+    @Column(name = "created_at",insertable = false)
     @Nullable
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
+    @Column(name = "updated_at",insertable = false)
     @Nullable
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 }
