@@ -1,4 +1,4 @@
-package com.theraflow;
+package com.theraflow.service;
 
 import com.theraflow.exception.PasswordPolicyException;
 import com.theraflow.mapper.DtoAccountMapper;
@@ -7,12 +7,10 @@ import com.theraflow.model.AccountType;
 import com.theraflow.dto.AccountRequest;
 import com.theraflow.dto.AccountResponse;
 import com.theraflow.repository.AccountRepository;
-import com.theraflow.service.AccountService;
 import com.theraflow.util.PasswordValidator;
 import com.theraflow.util.PasswordViolation;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.InOrder;
 import org.mockito.Mock;

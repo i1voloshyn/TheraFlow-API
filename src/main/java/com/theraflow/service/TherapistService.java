@@ -18,7 +18,7 @@ public class TherapistService {
     @Transactional
     public TherapistResponse createTherapistProfile(TherapistRequest request) {
 
-        Therapist therapist = therapistRepository.save(mapper.toTherapist(request));
+        Therapist therapist = therapistRepository.saveAndFlush(mapper.toTherapist(request));
 
         return mapper.toTherapistResponse(therapist);
     }
