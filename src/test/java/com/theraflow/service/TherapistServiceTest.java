@@ -6,7 +6,9 @@ import com.theraflow.dto.TherapistResponse;
 import com.theraflow.mapper.DtoTherapistMapper;
 import com.theraflow.model.Account;
 import com.theraflow.model.AccountType;
+import com.theraflow.model.Therapist;
 import com.theraflow.repository.AccountRepository;
+import com.theraflow.repository.TherapistRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,7 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.context.annotation.Import;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,6 +34,10 @@ class TherapistServiceTest {
     private TherapistService service;
 
     private UUID accountId;
+    @Autowired
+    private TherapistService therapistService;
+    @Autowired
+    private TherapistRepository therapistRepository;
 
     @BeforeEach
     void setUp() {
@@ -65,6 +72,23 @@ class TherapistServiceTest {
         assertThat(actual.id()).isNotNull();
         assertThat(actual.profTitle()).isNull();
         assertThat(actual.bio()).isNull();
+    }
+
+    @Test
+    void updateTherapistProfile_shouldSuccessfullyUpdateProfile() {
+        TherapistRequest request = requestWith("Mgr", "Some bio");
+        TherapistRequest updateRequest = requestWith("Doctor", "Some bio");
+
+        TherapistResponse actual = service.createTherapistProfile(request);
+
+        therapistService.updateTherapistProfile(updateRequest, actual.id());
+
+        Optional<Therapist> updated = therapistRepository.findById(actual.id());
+
+        assertThat(updated).isNotEmpty();
+        assertThat(updated.get().getId()).isEqualTo(actual.id());
+        assertThat(updated.get().getProfessionalTitle()).isEqualTo("Doctor");
+
     }
 
 

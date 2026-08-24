@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.Generated;
 import org.hibernate.generator.EventType;
 import org.jspecify.annotations.NullMarked;
@@ -31,12 +32,16 @@ public final class Therapist {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private UUID accountId;
+    @Setter
     private String firstName;
+    @Setter
     private String lastName;
     private String licenseNumber;
     @Nullable
+    @Setter
     private String professionalTitle;
     @Nullable
+    @Setter
     private String bio;
     @Generated(event = EventType.INSERT)
     @Column(name = "created_at", insertable = false)
