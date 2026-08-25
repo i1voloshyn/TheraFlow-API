@@ -30,9 +30,6 @@ class TherapistServiceTest {
 
     @Autowired
     private AccountRepository accountRepository;
-    @Autowired
-    private TherapistService service;
-
     private UUID accountId;
     @Autowired
     private TherapistService therapistService;
@@ -54,7 +51,7 @@ class TherapistServiceTest {
     void createTherapistProfile_shouldPersistMappedTherapistAndReturnCompleteResponse() {
         TherapistRequest request = requestWith("Doctor", "Some bio");
 
-        TherapistResponse actual = service.createTherapistProfile(request);
+        TherapistResponse actual = therapistService.createTherapistProfile(request);
 
         assertThat(actual.accountId()).isEqualTo(accountId);
         assertThat(actual.id()).isNotNull();
@@ -66,7 +63,7 @@ class TherapistServiceTest {
     void createTherapistProfile_shouldPreserveNullOptionalFields() {
         TherapistRequest request = requestWith(null, null);
 
-        TherapistResponse actual = service.createTherapistProfile(request);
+        TherapistResponse actual = therapistService.createTherapistProfile(request);
 
         assertThat(actual.accountId()).isEqualTo(accountId);
         assertThat(actual.id()).isNotNull();
@@ -79,7 +76,7 @@ class TherapistServiceTest {
         TherapistRequest request = requestWith("Mgr", "Some bio");
         TherapistRequest updateRequest = requestWith("Doctor", "Some bio");
 
-        TherapistResponse actual = service.createTherapistProfile(request);
+        TherapistResponse actual = therapistService.createTherapistProfile(request);
 
         therapistService.updateTherapistProfile(updateRequest, actual.id());
 
