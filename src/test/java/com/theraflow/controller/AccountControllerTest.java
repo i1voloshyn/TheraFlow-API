@@ -1,7 +1,7 @@
 package com.theraflow.controller;
 
 import com.theraflow.dto.AccountRequest;
-import com.theraflow.dto.SavedAccountResponse;
+import com.theraflow.dto.AccountResponse;
 import com.theraflow.model.AccountType;
 import com.theraflow.security.jwt.JwtAuthenticationFilter;
 import com.theraflow.service.AccountService;
@@ -15,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import static org.mockito.Mockito.verify;
@@ -48,7 +49,15 @@ class AccountControllerTest {
         AccountType type = AccountType.THERAPIST;
         AccountRequest request = new AccountRequest(email, password, type);
         UUID accId = UUID.fromString("cc837471-3c4b-4d77-a825-c4c1cf3a1dc5");
-        SavedAccountResponse response = new SavedAccountResponse(accId, email, type);
+        Instant createdAt = Instant.parse("2026-08-18T10:00:00Z");
+        Instant updatedAt = Instant.parse("2026-08-18T10:00:00Z");
+        AccountResponse response = new AccountResponse(
+                accId,
+                email,
+                type,
+                createdAt,
+                updatedAt
+        );
 
         when(accountService.createAccount(request)).thenReturn(response);
 
@@ -71,6 +80,8 @@ class AccountControllerTest {
                 .andExpect(jsonPath("$.id").value(accId.toString()))
                 .andExpect(jsonPath("$.email").value(email))
                 .andExpect(jsonPath("$.type").value(type.name()))
+                .andExpect(jsonPath("$.createdAt").value(createdAt.toString()))
+                .andExpect(jsonPath("$.updatedAt").value(updatedAt.toString()))
                 .andExpect(jsonPath("$.rawPassword").doesNotExist());
 
         verify(accountService).createAccount(request);

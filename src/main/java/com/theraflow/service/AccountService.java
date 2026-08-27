@@ -2,7 +2,6 @@ package com.theraflow.service;
 
 import com.theraflow.dto.AccountRequest;
 import com.theraflow.dto.AccountResponse;
-import com.theraflow.dto.SavedAccountResponse;
 import com.theraflow.mapper.DtoAccountMapper;
 import com.theraflow.model.Account;
 import com.theraflow.repository.AccountRepository;
@@ -21,7 +20,7 @@ public class AccountService {
     private final DtoAccountMapper mapper;
 
     @Transactional
-    public SavedAccountResponse createAccount(AccountRequest request) {
+    public AccountResponse createAccount(AccountRequest request) {
         passwordValidator.validate(request.rawPassword());
 
         Account accountToSave = mapper.toAccount(
@@ -30,7 +29,7 @@ public class AccountService {
                 request.type()
         );
 
-        Account createdAccount = accountRepository.save(accountToSave);
-        return mapper.toSavedAccountResponse(createdAccount);
+        Account createdAccount = accountRepository.saveAndFlush(accountToSave);
+        return mapper.toResponse(createdAccount);
     }
 }

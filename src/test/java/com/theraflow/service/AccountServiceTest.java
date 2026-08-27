@@ -1,6 +1,5 @@
 package com.theraflow.service;
 
-import com.theraflow.dto.SavedAccountResponse;
 import com.theraflow.exception.PasswordPolicyException;
 import com.theraflow.mapper.DtoAccountMapper;
 import com.theraflow.model.Account;
@@ -81,22 +80,21 @@ class AccountServiceTest {
                 .updatedAt(updatedAt)
                 .build();
 
-        SavedAccountResponse expectedResponse = new SavedAccountResponse(
+        AccountResponse expectedResponse = new AccountResponse(
                 id,
                 email,
-                type);
+                type,
+                createdAt,
+                updatedAt);
 
         when(passwordEncoder.encode(rawPassword)).thenReturn(passwordHash);
         when(accountRepository.saveAndFlush(any(Account.class))).thenReturn(createdAccount);
 
-        SavedAccountResponse actual = accountService.createAccount(request);
-
-
-        InOrder processingOrder = null;
+        AccountResponse actual = accountService.createAccount(request);
 
         assertThat(actual).isEqualTo(expectedResponse);
 
-        processingOrder = Mockito.inOrder(
+        InOrder processingOrder = Mockito.inOrder(
                 passwordValidator,
                 passwordEncoder,
                 accountMapper,

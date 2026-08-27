@@ -1,6 +1,5 @@
 package com.theraflow.controller;
 
-import com.theraflow.dto.SavedAccountResponse;
 import com.theraflow.service.AccountService;
 import com.theraflow.dto.AccountRequest;
 import com.theraflow.dto.AccountResponse;
@@ -23,10 +22,10 @@ public class AccountController {
     private final AccountService accountService;
 
     @PostMapping
-    public ResponseEntity<SavedAccountResponse> register(
+    public ResponseEntity<AccountResponse> register(
             @Valid @RequestBody AccountRequest request
     ) {
-        SavedAccountResponse response = accountService.createAccount(request);
+        AccountResponse response = accountService.createAccount(request);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")

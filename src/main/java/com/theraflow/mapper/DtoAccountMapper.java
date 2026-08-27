@@ -1,6 +1,5 @@
 package com.theraflow.mapper;
 
-import com.theraflow.dto.SavedAccountResponse;
 import com.theraflow.model.AccountType;
 import com.theraflow.model.Account;
 import com.theraflow.dto.AccountResponse;
@@ -29,14 +28,5 @@ public class DtoAccountMapper {
                 account.getUpdatedAt()
         );
     }
-
-    public SavedAccountResponse toSavedAccountResponse(Account account) {
-        return new SavedAccountResponse(
-                account.getId(),
-                account.getEmail(),
-                account.getType()
-        );
-    }
-
 
 }
