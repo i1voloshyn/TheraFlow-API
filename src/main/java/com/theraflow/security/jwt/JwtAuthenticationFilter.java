@@ -9,13 +9,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    private final JWTService JWTService;
+    private final JWTService jwtService;
     private final AccountPrincipalService accountPrincipalService;
 
     @Override
@@ -29,12 +30,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (authHeader!=null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
-            username = JWTService.extractUserName(token);
+            username = jwtService.extractUserName(token);
         }
 
         if (username!=null && SecurityContextHolder.getContext().getAuthentication()==null) {
             UserDetails accountPrincipal = accountPrincipalService.loadUserByUsername(username);
-            if (JWTService.validateToken(token, accountPrincipal)) {
+            if (jwtService.validateToken(token, accountPrincipal)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(accountPrincipal, null, accountPrincipal.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }

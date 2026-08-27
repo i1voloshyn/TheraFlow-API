@@ -9,7 +9,6 @@ import java.util.UUID;
 
 @NullMarked
 public record TherapistRequest(
-        @NotNull UUID accountId,
         @NotEmpty String firstName,
         @NotEmpty String lastName,
         @NotEmpty String licenseNumber,

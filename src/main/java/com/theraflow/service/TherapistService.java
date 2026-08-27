@@ -20,9 +20,9 @@ public class TherapistService {
     private final TherapistRepository therapistRepository;
     private final DtoTherapistMapper mapper;
 
-    public TherapistResponse createTherapistProfile(TherapistRequest request) {
+    public TherapistResponse createTherapistProfile(TherapistRequest request, UUID accountId) {
 
-        Therapist therapist = therapistRepository.saveAndFlush(mapper.toTherapist(request));
+        Therapist therapist = therapistRepository.saveAndFlush(mapper.toTherapist(request, accountId));
 
         return mapper.toTherapistResponse(therapist);
     }

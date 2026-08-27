@@ -5,12 +5,14 @@ import com.theraflow.dto.TherapistRequest;
 import com.theraflow.dto.TherapistResponse;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Component
 public class DtoTherapistMapper {
 
-    public Therapist toTherapist(TherapistRequest request) {
+    public Therapist toTherapist(TherapistRequest request, UUID accountId) {
         return Therapist.builder()
-                .accountId(request.accountId())
+                .accountId(accountId)
                 .firstName(request.firstName())
                 .lastName(request.lastName())
                 .licenseNumber(request.licenseNumber())

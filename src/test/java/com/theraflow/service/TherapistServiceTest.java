@@ -51,7 +51,7 @@ class TherapistServiceTest {
     void createTherapistProfile_shouldPersistMappedTherapistAndReturnCompleteResponse() {
         TherapistRequest request = requestWith("Doctor", "Some bio");
 
-        TherapistResponse actual = therapistService.createTherapistProfile(request);
+        TherapistResponse actual = therapistService.createTherapistProfile(request, accountId);
 
         assertThat(actual.accountId()).isEqualTo(accountId);
         assertThat(actual.id()).isNotNull();
@@ -63,7 +63,7 @@ class TherapistServiceTest {
     void createTherapistProfile_shouldPreserveNullOptionalFields() {
         TherapistRequest request = requestWith(null, null);
 
-        TherapistResponse actual = therapistService.createTherapistProfile(request);
+        TherapistResponse actual = therapistService.createTherapistProfile(request, accountId);
 
         assertThat(actual.accountId()).isEqualTo(accountId);
         assertThat(actual.id()).isNotNull();
@@ -76,7 +76,7 @@ class TherapistServiceTest {
         TherapistRequest request = requestWith("Mgr", "Some bio");
         TherapistRequest updateRequest = requestWith("Doctor", "Some bio");
 
-        TherapistResponse actual = therapistService.createTherapistProfile(request);
+        TherapistResponse actual = therapistService.createTherapistProfile(request, accountId);
 
         therapistService.updateTherapistProfile(updateRequest, actual.id());
 
@@ -91,7 +91,6 @@ class TherapistServiceTest {
 
     private TherapistRequest requestWith(String professionalTitle, String bio) {
         return new TherapistRequest(
-                accountId,
                 "Jere",
                 "Miah",
                 "LIC456",

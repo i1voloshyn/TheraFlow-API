@@ -1,5 +1,6 @@
 package com.theraflow.service;
 
+import com.theraflow.dto.SavedAccountResponse;
 import com.theraflow.exception.PasswordPolicyException;
 import com.theraflow.mapper.DtoAccountMapper;
 import com.theraflow.model.Account;
@@ -34,6 +35,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AccountServiceTest {
 
+    //rewrite it as integration
     @Mock
     private AccountRepository accountRepository;
 
@@ -79,17 +81,15 @@ class AccountServiceTest {
                 .updatedAt(updatedAt)
                 .build();
 
-        AccountResponse expectedResponse = new AccountResponse(
+        SavedAccountResponse expectedResponse = new SavedAccountResponse(
                 id,
                 email,
-                type,
-                createdAt,
-                updatedAt);
+                type);
 
         when(passwordEncoder.encode(rawPassword)).thenReturn(passwordHash);
         when(accountRepository.saveAndFlush(any(Account.class))).thenReturn(createdAccount);
 
-        AccountResponse actual = accountService.createAccount(request);
+        SavedAccountResponse actual = accountService.createAccount(request);
 
 
         InOrder processingOrder = null;

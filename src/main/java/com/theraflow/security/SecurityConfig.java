@@ -1,7 +1,7 @@
 package com.theraflow.security;
 
-import com.theraflow.security.jwt.JwtAuthenticationFilter;
 import com.theraflow.security.jwt.JWTService;
+import com.theraflow.security.jwt.JwtAuthenticationFilter;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,26 +22,26 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.Clock;
 import java.util.Base64;
 
-@RequiredArgsConstructor
 @EnableWebSecurity
 @Configuration
 public class SecurityConfig {
 
-    private final JWTService JWTService;
-    private final AccountPrincipalService accountPrincipalService;
+    @Bean
+    JwtAuthenticationFilter jwtAuthenticationFilter(
+            JWTService jwtService,
+            AccountPrincipalService accountPrincipalService
+    ) {
+        return new JwtAuthenticationFilter(jwtService, accountPrincipalService);
+    }
 
     @Bean
-    public Clock clock() {return Clock.systemUTC();}
-
-    @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(JWTService, accountPrincipalService);
+    public Clock clock() {
+        return Clock.systemUTC();
     }
 
     @Bean
@@ -71,7 +71,9 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   AuthenticationManager authenticationManager,
+                                                   JwtAuthenticationFilter jwtAuthenticationFilter) {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth ->
@@ -84,7 +86,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(
                         SessionCreationPolicy.STATELESS)
                 );
-        return http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class).build();
+        return http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class).build();
     }
 
 }

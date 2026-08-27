@@ -2,6 +2,7 @@ package com.theraflow.service;
 
 import com.theraflow.dto.AccountRequest;
 import com.theraflow.dto.AccountResponse;
+import com.theraflow.dto.SavedAccountResponse;
 import com.theraflow.mapper.DtoAccountMapper;
 import com.theraflow.model.Account;
 import com.theraflow.repository.AccountRepository;
@@ -10,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 
 @RequiredArgsConstructor
 @Service
@@ -21,7 +21,7 @@ public class AccountService {
     private final DtoAccountMapper mapper;
 
     @Transactional
-    public AccountResponse createAccount(AccountRequest request) {
+    public SavedAccountResponse createAccount(AccountRequest request) {
         passwordValidator.validate(request.rawPassword());
 
         Account accountToSave = mapper.toAccount(
@@ -30,7 +30,7 @@ public class AccountService {
                 request.type()
         );
 
-        Account createdAccount = accountRepository.saveAndFlush(accountToSave);
-        return mapper.toResponse(createdAccount);
+        Account createdAccount = accountRepository.save(accountToSave);
+        return mapper.toSavedAccountResponse(createdAccount);
     }
 }
