@@ -1,11 +1,14 @@
 package com.theraflow.controller;
 
+import com.theraflow.dto.ChangePasswordRequest;
+import com.theraflow.security.model.AccountPrincipal;
 import com.theraflow.service.AccountService;
 import com.theraflow.dto.AccountRequest;
 import com.theraflow.dto.AccountResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,5 +37,14 @@ public class AccountController {
 
         return ResponseEntity.created(location)
                 .body(response);
+    }
+
+    @PostMapping("/me/password")
+    public ResponseEntity<?> updatePassword(@Valid @RequestBody ChangePasswordRequest request,
+                                            @AuthenticationPrincipal AccountPrincipal principal) {
+
+        accountService.changePassword(request, principal.getAccountId());
+
+        return ResponseEntity.noContent().build();
     }
 }

@@ -1,11 +1,12 @@
 package com.theraflow.service;
 
+import com.theraflow.dto.AccountRequest;
+import com.theraflow.dto.AccountResponse;
+import com.theraflow.dto.ChangePasswordRequest;
 import com.theraflow.exception.PasswordPolicyException;
 import com.theraflow.mapper.DtoAccountMapper;
 import com.theraflow.model.Account;
 import com.theraflow.model.AccountType;
-import com.theraflow.dto.AccountRequest;
-import com.theraflow.dto.AccountResponse;
 import com.theraflow.repository.AccountRepository;
 import com.theraflow.util.PasswordValidator;
 import com.theraflow.util.PasswordViolation;
@@ -17,9 +18,11 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -27,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -127,5 +131,56 @@ class AccountServiceTest {
 
         verify(passwordValidator).validate(rawPassword);
         verifyNoInteractions(passwordEncoder, accountMapper, accountRepository);
+    }
+
+    @Test
+    void changePassword_withCorrectOldPassword_updatesPasswordHash() {
+        UUID accountId = UUID.fromString("cc837471-3c4b-4d77-a825-c4c1cf3a1dc5");
+        String oldPassword = "OldPassword1!";
+        String currentPasswordHash = "current-password-hash";
+        String newPassword = "NewPassword1!";
+        String newPasswordHash = "new-password-hash";
+        ChangePasswordRequest request = new ChangePasswordRequest(oldPassword, newPassword);
+        Account account = Account.builder()
+                .id(accountId)
+                .passwordHash(currentPasswordHash)
+                .build();
+
+        when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
+        when(passwordEncoder.matches(oldPassword, currentPasswordHash)).thenReturn(true);
+        when(passwordEncoder.encode(newPassword)).thenReturn(newPasswordHash);
+
+        accountService.changePassword(request, accountId);
+
+        assertThat(account.getPasswordHash()).isEqualTo(newPasswordHash);
+        verify(accountRepository).findById(accountId);
+        verify(passwordEncoder).matches(oldPassword, currentPasswordHash);
+        verify(passwordEncoder).encode(newPassword);
+    }
+
+    @Test
+    void changePassword_withIncorrectOldPassword_throwsBadCredentialsException() {
+        UUID accountId = UUID.fromString("cc837471-3c4b-4d77-a825-c4c1cf3a1dc5");
+        String incorrectOldPassword = "WrongPassword1!";
+        String currentPasswordHash = "current-password-hash";
+        ChangePasswordRequest request = new ChangePasswordRequest(
+                incorrectOldPassword,
+                "NewPassword1!");
+        Account account = Account.builder()
+                .id(accountId)
+                .passwordHash(currentPasswordHash)
+                .build();
+
+        when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
+        when(passwordEncoder.matches(incorrectOldPassword, currentPasswordHash)).thenReturn(false);
+
+        assertThatThrownBy(() -> accountService.changePassword(request, accountId))
+                .isInstanceOf(BadCredentialsException.class)
+                .hasMessage("The old password does not match your current password");
+
+        assertThat(account.getPasswordHash()).isEqualTo(currentPasswordHash);
+        verify(accountRepository).findById(accountId);
+        verify(passwordEncoder).matches(incorrectOldPassword, currentPasswordHash);
+        verify(passwordEncoder, never()).encode(any());
     }
 }

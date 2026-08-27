@@ -1,4 +1,4 @@
-package com.theraflow.exceptionHandler;
+package com.theraflow.exception.model;
 
 public record InvalidParam(
         String name,

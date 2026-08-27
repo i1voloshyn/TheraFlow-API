@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.generator.EventType;
@@ -39,6 +40,7 @@ public class Account {
     @Column(unique = true)
     private String email;
     @Column(name = "password_hash", nullable = false)
+    @Setter
     private String passwordHash;
     @Enumerated(EnumType.STRING)
     @Column(name = "account_type", nullable = false)

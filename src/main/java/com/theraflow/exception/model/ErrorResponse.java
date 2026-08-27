@@ -1,4 +1,6 @@
-package com.theraflow.exceptionHandler;
+package com.theraflow.exception.model;
+
+import org.jspecify.annotations.Nullable;
 
 import java.net.URI;
 import java.time.Instant;
@@ -8,16 +10,18 @@ public record ErrorResponse(
         String title,
         URI path,
         int status,
+        ErrorCode errorCode,
         Instant timestamp,
         String message,
-        List<InvalidParam> params
+        @Nullable List<InvalidParam> params
 ) {
     public ErrorResponse(
             String title,
             URI path,
-            int statusCode,
+            int status,
+            ErrorCode errorCode,
             String message,
             List<InvalidParam> params) {
-        this(title, path, statusCode, Instant.now(), message, params);
+        this(title, path, status,errorCode, Instant.now(), message, params);
     }
 }
