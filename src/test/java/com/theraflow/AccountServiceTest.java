@@ -1,13 +1,13 @@
-package com.theraflow.service;
+package com.theraflow;
 
-import com.theraflow.dto.SavedAccountResponse;
 import com.theraflow.exception.PasswordPolicyException;
 import com.theraflow.mapper.DtoAccountMapper;
 import com.theraflow.model.Account;
 import com.theraflow.model.AccountType;
-import com.theraflow.dto.AccountRequest;
-import com.theraflow.dto.AccountResponse;
+import com.theraflow.model.dto.AccountRequest;
+import com.theraflow.model.dto.AccountResponse;
 import com.theraflow.repository.AccountRepository;
+import com.theraflow.service.AccountService;
 import com.theraflow.util.PasswordValidator;
 import com.theraflow.util.PasswordViolation;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.InOrder;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,8 +25,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -35,7 +34,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AccountServiceTest {
 
-    //rewrite it as integration
     @Mock
     private AccountRepository accountRepository;
 
@@ -46,7 +44,7 @@ class AccountServiceTest {
     private PasswordValidator passwordValidator;
 
     @Spy
-    private DtoAccountMapper accountMapper;
+    private DtoAccountMapper accountMapper = new DtoAccountMapper();
 
     @InjectMocks
     private AccountService accountService;
@@ -59,44 +57,35 @@ class AccountServiceTest {
         AccountType type = AccountType.THERAPIST;
         AccountRequest request = new AccountRequest(email, rawPassword, type);
 
-        Account accountToSave = Account.builder()
-                .id(null)
-                .email(email)
-                .passwordHash(passwordHash)
-                .type(type)
-                .createdAt(null)
-                .updatedAt(null)
-                .build();
+        Account accountToSave = new Account(null, email, passwordHash, type, null, null);
 
         UUID id = UUID.fromString("cc837471-3c4b-4d77-a825-c4c1cf3a1dc5");
         Instant createdAt = Instant.parse("2026-08-18T10:00:00Z");
         Instant updatedAt = Instant.parse("2026-08-18T10:00:00Z");
 
-        Account createdAccount = Account.builder()
-                .id(id)
-                .email(email)
-                .passwordHash(passwordHash)
-                .type(type)
-                .createdAt(createdAt)
-                .updatedAt(updatedAt)
-                .build();
-
-        SavedAccountResponse expectedResponse = new SavedAccountResponse(
+        Account createdAccount = new Account(
                 id,
                 email,
-                type);
+                passwordHash,
+                type,
+                createdAt,
+                updatedAt);
+
+        AccountResponse expectedResponse = new AccountResponse(
+                id,
+                email,
+                type,
+                createdAt,
+                updatedAt);
 
         when(passwordEncoder.encode(rawPassword)).thenReturn(passwordHash);
-        when(accountRepository.saveAndFlush(any(Account.class))).thenReturn(createdAccount);
+        when(accountRepository.create(accountToSave)).thenReturn(createdAccount);
 
-        SavedAccountResponse actual = accountService.createAccount(request);
-
-
-        InOrder processingOrder = null;
+        AccountResponse actual = accountService.createAccount(request);
 
         assertThat(actual).isEqualTo(expectedResponse);
 
-        processingOrder = Mockito.inOrder(
+        InOrder processingOrder = inOrder(
                 passwordValidator,
                 passwordEncoder,
                 accountMapper,
@@ -105,7 +94,7 @@ class AccountServiceTest {
         processingOrder.verify(passwordValidator).validate(rawPassword);
         processingOrder.verify(passwordEncoder).encode(rawPassword);
         processingOrder.verify(accountMapper).toAccount(email, passwordHash, type);
-        processingOrder.verify(accountRepository).saveAndFlush(any(Account.class));
+        processingOrder.verify(accountRepository).create(accountToSave);
         processingOrder.verify(accountMapper).toResponse(createdAccount);
     }
 

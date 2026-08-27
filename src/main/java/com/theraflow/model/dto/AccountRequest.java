@@ -1,4 +1,4 @@
-package com.theraflow.dto;
+package com.theraflow.model.dto;
 
 import com.theraflow.model.AccountType;
 import jakarta.validation.constraints.Email;
