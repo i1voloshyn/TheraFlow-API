@@ -1,4 +1,4 @@
-CREATE TYPE account_type AS ENUM ('therapist', 'guardian');
+CREATE TYPE account_type AS ENUM ('THERAPIST', 'GUARDIAN');
 
 CREATE TABLE accounts
 (
