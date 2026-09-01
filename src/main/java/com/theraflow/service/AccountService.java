@@ -7,6 +7,8 @@ import com.theraflow.exception.EntityNotFoundException;
 import com.theraflow.mapper.DtoAccountMapper;
 import com.theraflow.model.Account;
 import com.theraflow.repository.AccountRepository;
+import com.theraflow.security.AuthService;
+import com.theraflow.security.model.LoginRequest;
 import com.theraflow.util.PasswordValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -25,6 +27,7 @@ public class AccountService {
     private final PasswordEncoder passwordEncoder;
     private final PasswordValidator passwordValidator;
     private final DtoAccountMapper mapper;
+    private final AuthService authService;
 
     @Transactional
     public AccountResponse createAccount(AccountRequest request) {
@@ -37,7 +40,10 @@ public class AccountService {
         );
 
         Account createdAccount = accountRepository.saveAndFlush(accountToSave);
-        return mapper.toResponse(createdAccount);
+
+        String token = authService.authenticate(new LoginRequest(request.email(), request.rawPassword()));
+
+        return mapper.toResponse(createdAccount,token);
     }
 
     @Transactional

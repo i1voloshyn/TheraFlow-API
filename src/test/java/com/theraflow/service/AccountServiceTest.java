@@ -8,6 +8,8 @@ import com.theraflow.mapper.DtoAccountMapper;
 import com.theraflow.model.Account;
 import com.theraflow.model.AccountType;
 import com.theraflow.repository.AccountRepository;
+import com.theraflow.security.AuthService;
+import com.theraflow.security.model.LoginRequest;
 import com.theraflow.util.PasswordValidator;
 import com.theraflow.util.PasswordViolation;
 import org.junit.jupiter.api.Test;
@@ -47,6 +49,8 @@ class AccountServiceTest {
 
     @Mock
     private PasswordValidator passwordValidator;
+    @Mock
+    private AuthService authService;
 
     @Spy
     private DtoAccountMapper accountMapper;
@@ -54,13 +58,17 @@ class AccountServiceTest {
     @InjectMocks
     private AccountService accountService;
 
+
     @Test
     void createAccount_withValidRequest_returnsCreatedAccountResponse() {
         String email = "therapist@example.com";
         String rawPassword = "StrongPassword1!";
         String passwordHash = "encoded-password-hash";
+        String token = "some-valid-token";
         AccountType type = AccountType.THERAPIST;
         AccountRequest request = new AccountRequest(email, rawPassword, type);
+
+        LoginRequest loginRequest = new LoginRequest(email, rawPassword);
 
         Account accountToSave = Account.builder()
                 .id(null)
@@ -87,12 +95,14 @@ class AccountServiceTest {
         AccountResponse expectedResponse = new AccountResponse(
                 id,
                 email,
+                token,
                 type,
                 createdAt,
                 updatedAt);
 
         when(passwordEncoder.encode(rawPassword)).thenReturn(passwordHash);
         when(accountRepository.saveAndFlush(any(Account.class))).thenReturn(createdAccount);
+        when(authService.authenticate(loginRequest)).thenReturn(token);
 
         AccountResponse actual = accountService.createAccount(request);
 
@@ -108,7 +118,7 @@ class AccountServiceTest {
         processingOrder.verify(passwordEncoder).encode(rawPassword);
         processingOrder.verify(accountMapper).toAccount(email, passwordHash, type);
         processingOrder.verify(accountRepository).saveAndFlush(any(Account.class));
-        processingOrder.verify(accountMapper).toResponse(createdAccount);
+        processingOrder.verify(accountMapper).toResponse(createdAccount, token);
     }
 
     @Test

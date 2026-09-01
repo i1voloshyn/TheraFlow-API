@@ -38,7 +38,6 @@ public class GlobalExceptionControllerAdvice {
         return ResponseEntity
                 .badRequest()
                 .body(error);
-
     }
 
     @ExceptionHandler(BadCredentialsException.class)

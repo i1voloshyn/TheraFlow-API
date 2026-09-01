@@ -36,6 +36,7 @@ public class JWTService {
                 .compact();
     }
 
+    //Validate by ID
     public boolean validateToken(String token, UserDetails accountPrincipal) {
         String userName = extractUserName(token);
         return (userName.equals(accountPrincipal.getUsername()) && !isTokenExpired(token));

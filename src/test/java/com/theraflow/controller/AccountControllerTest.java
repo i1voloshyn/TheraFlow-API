@@ -47,6 +47,7 @@ class AccountControllerTest {
         String email = "valid_email@gmail.com";
         String password = "123StringPassword!";
         AccountType type = AccountType.THERAPIST;
+        String token = "some-valid-token";
         AccountRequest request = new AccountRequest(email, password, type);
         UUID accId = UUID.fromString("cc837471-3c4b-4d77-a825-c4c1cf3a1dc5");
         Instant createdAt = Instant.parse("2026-08-18T10:00:00Z");
@@ -54,6 +55,7 @@ class AccountControllerTest {
         AccountResponse response = new AccountResponse(
                 accId,
                 email,
+                token,
                 type,
                 createdAt,
                 updatedAt
@@ -80,6 +82,7 @@ class AccountControllerTest {
                 .andExpect(jsonPath("$.id").value(accId.toString()))
                 .andExpect(jsonPath("$.email").value(email))
                 .andExpect(jsonPath("$.type").value(type.name()))
+                .andExpect(jsonPath("$.token").value(token))
                 .andExpect(jsonPath("$.createdAt").value(createdAt.toString()))
                 .andExpect(jsonPath("$.updatedAt").value(updatedAt.toString()))
                 .andExpect(jsonPath("$.rawPassword").doesNotExist());

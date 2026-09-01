@@ -79,8 +79,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers("/api/v1/auth/**").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/v1/accounts").permitAll()
-                                .requestMatchers("/api/v1/me/therapist-profile",
-                                        "/api/v1/me/therapist-profile/**").hasRole("THERAPIST")
+                                .requestMatchers("/api/v1/profile",
+                                        "/api/v1/profile/**").hasRole("THERAPIST")
                                 .anyRequest().authenticated())
                 .authenticationManager(authenticationManager)
                 .sessionManagement(session -> session.sessionCreationPolicy(
