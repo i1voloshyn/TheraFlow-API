@@ -1,8 +1,10 @@
 package com.theraflow.mapper;
 
-import com.theraflow.model.Therapist;
+import com.theraflow.dto.AboutRequest;
 import com.theraflow.dto.TherapistRequest;
 import com.theraflow.dto.TherapistResponse;
+import com.theraflow.model.About;
+import com.theraflow.model.Therapist;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -17,7 +19,6 @@ public class DtoTherapistMapper {
                 .lastName(request.lastName())
                 .licenseNumber(request.licenseNumber())
                 .professionalTitle(request.profTitle())
-                .bio(request.bio())
                 .build();
     }
 
@@ -29,9 +30,18 @@ public class DtoTherapistMapper {
                 therapist.getLastName(),
                 therapist.getLicenseNumber(),
                 therapist.getProfessionalTitle(),
-                therapist.getBio(),
                 therapist.getCreatedAt(),
                 therapist.getUpdatedAt()
+        );
+    }
+
+    public About toAbout(AboutRequest request) {
+        return new About(
+                request.bio(),
+                request.languages(),
+                request.education(),
+                request.experience(),
+                request.articles()
         );
     }
 }

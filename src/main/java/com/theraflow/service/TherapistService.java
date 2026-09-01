@@ -1,5 +1,6 @@
 package com.theraflow.service;
 
+import com.theraflow.dto.AboutRequest;
 import com.theraflow.dto.TherapistRequest;
 import com.theraflow.dto.TherapistResponse;
 import com.theraflow.exception.EntityNotFoundException;
@@ -34,7 +35,13 @@ public class TherapistService {
         actual.setFirstName(request.firstName());
         actual.setLastName(request.lastName());
         actual.setProfessionalTitle(request.profTitle());
-        actual.setBio(request.bio());
+    }
+
+    public void updateTherapistAbout(AboutRequest request, UUID accountId) {
+        Therapist actual = therapistRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new EntityNotFoundException(ENTITY_NAME, accountId));
+
+        actual.setAbout(mapper.toAbout(request));
     }
 
 }

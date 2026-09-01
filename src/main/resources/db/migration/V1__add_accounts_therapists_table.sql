@@ -26,7 +26,7 @@ CREATE TABLE therapists
     last_name          TEXT                     NOT NULL,
     license_number     TEXT                     NOT NULL,
     professional_title TEXT,
-    bio                TEXT,
+    about              JSONB                             DEFAULT '{}'::jsonb,
     created_at         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -47,10 +47,6 @@ CREATE TABLE therapists
             professional_title IS NULL
                 OR trim(professional_title) <> ''
             ),
-    CONSTRAINT ck_therapists_bio_valid
-        CHECK (
-            bio IS NULL
-                OR (trim(bio) <> '' AND char_length(bio) <= 2000)
-            ),
+
     CONSTRAINT uq_therapists_license_number UNIQUE (license_number)
 );

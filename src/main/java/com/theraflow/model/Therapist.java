@@ -12,7 +12,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.generator.EventType;
+import org.hibernate.type.SqlTypes;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -36,13 +38,14 @@ public final class Therapist {
     private String firstName;
     @Setter
     private String lastName;
-    private String licenseNumber;
+    private String licenseNumber; //PL PWZ ?
     @Nullable
     @Setter
     private String professionalTitle;
     @Nullable
     @Setter
-    private String bio;
+    @JdbcTypeCode(SqlTypes.JSON)
+    private About about;
     @Generated(event = EventType.INSERT)
     @Column(name = "created_at", insertable = false)
     @Nullable

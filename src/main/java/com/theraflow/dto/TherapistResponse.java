@@ -14,7 +14,6 @@ public record TherapistResponse(
         String lastName,
         String licenseNumber,
         @Nullable String profTitle,
-        @Nullable String bio,
         Instant createdAt,
         Instant updatedAt
 ) {

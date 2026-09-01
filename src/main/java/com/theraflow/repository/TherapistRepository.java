@@ -8,5 +8,5 @@ import java.util.UUID;
 
 public interface TherapistRepository extends JpaRepository<Therapist, UUID> {
 
-    Optional<Therapist> findTherapistByAccountId(UUID accountId);
+    Optional<Therapist> findByAccountId(UUID accountId);
 }

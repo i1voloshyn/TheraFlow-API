@@ -12,7 +12,6 @@ public record TherapistRequest(
         @NotEmpty String firstName,
         @NotEmpty String lastName,
         @NotEmpty String licenseNumber,
-        @Nullable String profTitle,
-        @Nullable String bio
+        @Nullable String profTitle
 ) {
 }

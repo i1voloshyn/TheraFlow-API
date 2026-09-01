@@ -1,5 +1,6 @@
 package com.theraflow.controller;
 
+import com.theraflow.dto.AboutRequest;
 import com.theraflow.dto.TherapistRequest;
 import com.theraflow.dto.TherapistResponse;
 import com.theraflow.security.model.AccountPrincipal;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,6 +39,16 @@ public class ProfileController {
                 .toUri();
 
         return ResponseEntity.created(location).body(therapist);
+    }
+
+    @PutMapping("/about")
+    public ResponseEntity<Void> updateTherapistAbout(
+            @Valid @RequestBody AboutRequest request,
+            @AuthenticationPrincipal AccountPrincipal principal
+    ) {
+        therapistService.updateTherapistAbout(request, principal.getAccountId());
+
+        return ResponseEntity.noContent().build();
     }
 
 }

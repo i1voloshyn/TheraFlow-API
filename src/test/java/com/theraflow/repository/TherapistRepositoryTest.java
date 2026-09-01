@@ -45,7 +45,6 @@ class TherapistRepositoryTest {
                 .lastName("Nevada")
                 .licenseNumber("RTF 5456")
                 .professionalTitle("Doctor")
-                .bio("Just therapist")
                 .build();
 
         Therapist actual = repository.saveAndFlush(therapistToSave);
@@ -57,7 +56,6 @@ class TherapistRepositoryTest {
         assertThat(actual.getLastName()).isEqualTo("Nevada");
         assertThat(actual.getLicenseNumber()).isEqualTo("RTF 5456");
         assertThat(actual.getProfessionalTitle()).isEqualTo("Doctor");
-        assertThat(actual.getBio()).isEqualTo("Just therapist");
         assertThat(actual.getCreatedAt()).isNotNull();
         assertThat(actual.getUpdatedAt()).isNotNull();
     }
@@ -72,7 +70,6 @@ class TherapistRepositoryTest {
                 .lastName("Nevada")
                 .licenseNumber("RTF 5456")
                 .professionalTitle("Doctor")
-                .bio("Just therapist")
                 .build();
         assertThatExceptionOfType(DataIntegrityViolationException.class)
                 .isThrownBy(() -> repository.saveAndFlush(therapistToSave));
