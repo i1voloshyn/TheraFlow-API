@@ -1,7 +1,8 @@
 package com.theraflow.exception.exceptionHandler;
 
-import com.theraflow.exception.model.ErrorCode;
+import com.theraflow.exception.EntityNotFoundException;
 import com.theraflow.exception.PasswordPolicyException;
+import com.theraflow.exception.model.ErrorCode;
 import com.theraflow.exception.model.ErrorResponse;
 import com.theraflow.exception.model.InvalidParam;
 import jakarta.servlet.http.HttpServletRequest;
@@ -50,5 +51,18 @@ public class GlobalExceptionControllerAdvice {
         var errorCode = ErrorCode.PASSWORD_MISMATCH;
         ErrorResponse error = new ErrorResponse(title, path, statusCode, errorCode, ex.getMessage(), null);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleEntityNotFoundException(
+            EntityNotFoundException ex,
+            HttpServletRequest req) {
+        String title = "Requested entity was not found";
+        URI path = URI.create(req.getRequestURI());
+        int statusCode = HttpStatus.NOT_FOUND.value();
+        var errorCode = ErrorCode.ENTITY_NOT_FOUND;
+        ErrorResponse error = new ErrorResponse(title, path, statusCode, errorCode, ex.getMessage(), null);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 }
