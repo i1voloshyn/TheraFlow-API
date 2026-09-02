@@ -3,6 +3,7 @@ package com.theraflow.service;
 import com.theraflow.TestcontainersConfiguration;
 import com.theraflow.dto.AboutRequest;
 import com.theraflow.dto.AddressRequest;
+import com.theraflow.dto.ProfileDetailsResponse;
 import com.theraflow.dto.TherapistRequest;
 import com.theraflow.dto.TherapistResponse;
 import com.theraflow.exception.EntityNotFoundException;
@@ -86,13 +87,27 @@ class TherapistServiceTest {
     }
 
     @Test
+    void getProfileDetails_shouldReturnTherapistProfileWithAccountEmail() {
+        TherapistResponse created = therapistService.createProfile(requestWith("Doctor"), accountId);
+
+        ProfileDetailsResponse actual = therapistService.getProfileDetails(accountId);
+
+        assertThat(actual.id()).isEqualTo(created.id());
+        assertThat(actual.email()).isEqualTo("therapist@example.com");
+        assertThat(actual.firstName()).isEqualTo("Jere");
+        assertThat(actual.lastName()).isEqualTo("Miah");
+        assertThat(actual.licenseNumber()).isEqualTo("LIC456");
+        assertThat(actual.professionalTitle()).isEqualTo("Doctor");
+    }
+
+    @Test
     void updateTherapistProfile_shouldSuccessfullyUpdateProfile() {
         TherapistRequest request = requestWith("Mgr");
         TherapistRequest updateRequest = requestWith("Doctor");
 
         TherapistResponse actual = therapistService.createProfile(request, accountId);
 
-        therapistService.updateProfile(updateRequest, actual.id());
+        therapistService.updateProfile(updateRequest, accountId);
 
         Optional<Therapist> updated = therapistRepository.findById(actual.id());
 

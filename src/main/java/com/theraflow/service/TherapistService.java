@@ -2,6 +2,7 @@ package com.theraflow.service;
 
 import com.theraflow.dto.AboutRequest;
 import com.theraflow.dto.AddressRequest;
+import com.theraflow.dto.ProfileDetailsResponse;
 import com.theraflow.dto.TherapistRequest;
 import com.theraflow.dto.TherapistResponse;
 import com.theraflow.exception.EntityNotFoundException;
@@ -9,6 +10,7 @@ import com.theraflow.mapper.DtoTherapistMapper;
 import com.theraflow.model.About;
 import com.theraflow.model.Address;
 import com.theraflow.model.Therapist;
+import com.theraflow.repository.AccountRepository;
 import com.theraflow.repository.TherapistRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,7 @@ import java.util.UUID;
 public class TherapistService {
     private static final String ENTITY_NAME = "Therapist";
     private final TherapistRepository therapistRepository;
+    private final AccountRepository accountRepository;
     private final DtoTherapistMapper mapper;
 
     public TherapistResponse createProfile(TherapistRequest request, UUID accountId) {
@@ -34,11 +37,22 @@ public class TherapistService {
         return mapper.toTherapistResponse(therapist);
     }
 
-    public void updateProfile(TherapistRequest request, UUID id) {
-        Therapist actual = findTherapistById(id);
+    @Transactional(readOnly = true)
+    public ProfileDetailsResponse getProfileDetails(UUID accountId) {
+        Therapist therapist = findTherapistByAccountId(accountId);
+        String email = accountRepository.findById(accountId)
+                .orElseThrow(() -> new EntityNotFoundException("Account", accountId))
+                .getEmail();
+
+        return mapper.toProfileDetailsResponse(therapist, email);
+    }
+
+    public void updateProfile(TherapistRequest request, UUID accountId) {
+        Therapist actual = findTherapistByAccountId(accountId);
 
         actual.setFirstName(request.firstName());
         actual.setLastName(request.lastName());
+        actual.setLicenseNumber(request.licenseNumber());
         actual.setProfessionalTitle(request.profTitle());
     }
 
@@ -91,11 +105,6 @@ public class TherapistService {
         return actual.getAddress() == null
                 ? List.of()
                 : List.copyOf(actual.getAddress());
-    }
-
-    private Therapist findTherapistById(UUID id) {
-        return therapistRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(ENTITY_NAME, id));
     }
 
     private Therapist findTherapistByAccountId(UUID accountId) {

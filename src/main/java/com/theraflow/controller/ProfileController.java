@@ -2,6 +2,7 @@ package com.theraflow.controller;
 
 import com.theraflow.dto.AboutRequest;
 import com.theraflow.dto.AddressRequest;
+import com.theraflow.dto.ProfileDetailsResponse;
 import com.theraflow.dto.TherapistRequest;
 import com.theraflow.dto.TherapistResponse;
 import com.theraflow.model.About;
@@ -47,6 +48,23 @@ public class ProfileController {
                 .toUri();
 
         return ResponseEntity.created(location).body(therapist);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<ProfileDetailsResponse> getProfileDetails(
+            @AuthenticationPrincipal AccountPrincipal principal
+    ) {
+        return ResponseEntity.ok(therapistService.getProfileDetails(principal.getAccountId()));
+    }
+
+    @PutMapping
+    public ResponseEntity<Void> updateProfile(
+            @Valid @RequestBody TherapistRequest request,
+            @AuthenticationPrincipal AccountPrincipal principal
+    ) {
+        therapistService.updateProfile(request, principal.getAccountId());
+
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/about")

@@ -39,6 +39,7 @@ public final class Therapist {
     private String firstName;
     @Setter
     private String lastName;
+    @Setter
     private String licenseNumber; //PL PWZ ?
     @Nullable
     @Setter

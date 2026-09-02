@@ -2,6 +2,7 @@ package com.theraflow.mapper;
 
 import com.theraflow.dto.AboutRequest;
 import com.theraflow.dto.AddressRequest;
+import com.theraflow.dto.ProfileDetailsResponse;
 import com.theraflow.dto.TherapistRequest;
 import com.theraflow.dto.TherapistResponse;
 import com.theraflow.model.About;
@@ -28,6 +29,19 @@ public class DtoTherapistMapper {
         return new TherapistResponse(
                 therapist.getId(),
                 therapist.getAccountId(),
+                therapist.getFirstName(),
+                therapist.getLastName(),
+                therapist.getLicenseNumber(),
+                therapist.getProfessionalTitle(),
+                therapist.getCreatedAt(),
+                therapist.getUpdatedAt()
+        );
+    }
+
+    public ProfileDetailsResponse toProfileDetailsResponse(Therapist therapist, String email) {
+        return new ProfileDetailsResponse(
+                therapist.getId(),
+                email,
                 therapist.getFirstName(),
                 therapist.getLastName(),
                 therapist.getLicenseNumber(),
