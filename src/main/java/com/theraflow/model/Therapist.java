@@ -19,6 +19,7 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -46,6 +47,10 @@ public final class Therapist {
     @Setter
     @JdbcTypeCode(SqlTypes.JSON)
     private About about;
+    @Nullable
+    @Setter
+    @JdbcTypeCode(SqlTypes.JSON)
+    private List<Address> address;
     @Generated(event = EventType.INSERT)
     @Column(name = "created_at", insertable = false)
     @Nullable

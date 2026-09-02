@@ -27,6 +27,7 @@ CREATE TABLE therapists
     license_number     TEXT                     NOT NULL,
     professional_title TEXT,
     about              JSONB                             DEFAULT '{}'::jsonb,
+    address            JSONB                             DEFAULT '[]'::jsonb,
     created_at         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

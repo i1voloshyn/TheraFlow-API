@@ -1,9 +1,11 @@
 package com.theraflow.mapper;
 
 import com.theraflow.dto.AboutRequest;
+import com.theraflow.dto.AddressRequest;
 import com.theraflow.dto.TherapistRequest;
 import com.theraflow.dto.TherapistResponse;
 import com.theraflow.model.About;
+import com.theraflow.model.Address;
 import com.theraflow.model.Therapist;
 import org.springframework.stereotype.Component;
 
@@ -42,6 +44,20 @@ public class DtoTherapistMapper {
                 request.education(),
                 request.experience(),
                 request.articles()
+        );
+    }
+
+    public Address toAddress(AddressRequest request, UUID id) {
+        return new Address(
+                id,
+                request.street(),
+                request.buildingNumber(),
+                request.apartmentNumber(),
+                request.city(),
+                request.region(),
+                request.postalCode(),
+                request.countryCode(),
+                request.phoneNumber()
         );
     }
 }

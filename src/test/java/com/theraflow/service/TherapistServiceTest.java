@@ -2,8 +2,10 @@ package com.theraflow.service;
 
 import com.theraflow.TestcontainersConfiguration;
 import com.theraflow.dto.AboutRequest;
+import com.theraflow.dto.AddressRequest;
 import com.theraflow.dto.TherapistRequest;
 import com.theraflow.dto.TherapistResponse;
+import com.theraflow.exception.EntityNotFoundException;
 import com.theraflow.mapper.DtoTherapistMapper;
 import com.theraflow.model.About;
 import com.theraflow.model.Account;
@@ -30,6 +32,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @DataJpaTest(properties = "spring.jpa.hibernate.ddl-auto=none")
 @Import({TestcontainersConfiguration.class,
@@ -60,10 +63,10 @@ class TherapistServiceTest {
     }
 
     @Test
-    void createTherapistProfile_shouldPersistMappedTherapistAndReturnCompleteResponse() {
+    void createTherapistProfile_shouldPersistMappedAndReturnCompleteResponse() {
         TherapistRequest request = requestWith("Doctor");
 
-        TherapistResponse actual = therapistService.createTherapistProfile(request, accountId);
+        TherapistResponse actual = therapistService.createProfile(request, accountId);
 
         assertThat(actual.accountId()).isEqualTo(accountId);
         assertThat(actual.id()).isNotNull();
@@ -72,10 +75,10 @@ class TherapistServiceTest {
     }
 
     @Test
-    void createTherapistProfile_shouldPreserveNullOptionalFields() {
+    void createProfile_shouldPreserveNullOptionalFields() {
         TherapistRequest request = requestWith(null);
 
-        TherapistResponse actual = therapistService.createTherapistProfile(request, accountId);
+        TherapistResponse actual = therapistService.createProfile(request, accountId);
 
         assertThat(actual.accountId()).isEqualTo(accountId);
         assertThat(actual.id()).isNotNull();
@@ -87,9 +90,9 @@ class TherapistServiceTest {
         TherapistRequest request = requestWith("Mgr");
         TherapistRequest updateRequest = requestWith("Doctor");
 
-        TherapistResponse actual = therapistService.createTherapistProfile(request, accountId);
+        TherapistResponse actual = therapistService.createProfile(request, accountId);
 
-        therapistService.updateTherapistProfile(updateRequest, actual.id());
+        therapistService.updateProfile(updateRequest, actual.id());
 
         Optional<Therapist> updated = therapistRepository.findById(actual.id());
 
@@ -100,8 +103,8 @@ class TherapistServiceTest {
     }
 
     @Test
-    void updateTherapistAbout_shouldAddAndEditCompleteAboutField() {
-        TherapistResponse therapist = therapistService.createTherapistProfile(requestWith("Doctor"), accountId);
+    void updateAbout_shouldAddAndEditCompleteAboutField() {
+        TherapistResponse therapist = therapistService.createProfile(requestWith("Doctor"), accountId);
         AboutRequest initialRequest = new AboutRequest(
                 "Pediatric physiotherapist supporting children from 6 months to 6 years old.",
                 List.of(
@@ -130,7 +133,7 @@ class TherapistServiceTest {
                 ))
         );
 
-        therapistService.updateTherapistAbout(initialRequest, accountId);
+        therapistService.updateAbout(initialRequest, accountId);
         entityManager.flush();
         entityManager.clear();
 
@@ -146,12 +149,78 @@ class TherapistServiceTest {
                 initialRequest.articles()
         );
 
-        therapistService.updateTherapistAbout(editedRequest, accountId);
+        therapistService.updateAbout(editedRequest, accountId);
         entityManager.flush();
         entityManager.clear();
 
         Therapist edited = therapistRepository.findById(therapist.id()).orElseThrow();
         assertThat(edited.getAbout()).isEqualTo(toAbout(editedRequest));
+    }
+
+    @Test
+    void deleteAddress_shouldRemoveOnlySelectedAddressFromPersistedProfile() {
+        TherapistResponse therapist = therapistService.createProfile(requestWith("Doctor"), accountId);
+        AddressRequest addressToDelete = new AddressRequest(
+                "Przemiarki",
+                "23",
+                "U12",
+                "Kraków",
+                "małopolskie",
+                "30-384",
+                "PL",
+                "+48 12 345 67 89"
+        );
+        AddressRequest addressToKeep = new AddressRequest(
+                "Długa",
+                "10",
+                null,
+                "Kraków",
+                "małopolskie",
+                "31-146",
+                "PL",
+                "+48 12 987 65 43"
+        );
+        UUID deletedAddressId = therapistService.addAddress(addressToDelete, accountId);
+        UUID retainedAddressId = therapistService.addAddress(addressToKeep, accountId);
+        entityManager.flush();
+        entityManager.clear();
+
+        therapistService.deleteAddress(deletedAddressId, accountId);
+        entityManager.flush();
+        entityManager.clear();
+
+        Therapist persisted = therapistRepository.findById(therapist.id()).orElseThrow();
+        assertThat(persisted.getAddress())
+                .singleElement()
+                .satisfies(address -> {
+                    assertThat(address.id()).isEqualTo(retainedAddressId);
+                    assertThat(address.street()).isEqualTo(addressToKeep.street());
+                    assertThat(address.buildingNumber()).isEqualTo(addressToKeep.buildingNumber());
+                });
+    }
+
+    @Test
+    void deleteAddress_whenAlreadyDeleted_shouldThrowEntityNotFoundException() {
+        therapistService.createProfile(requestWith("Doctor"), accountId);
+        AddressRequest request = new AddressRequest(
+                "Przemiarki",
+                "23",
+                "U12",
+                "Kraków",
+                "małopolskie",
+                "30-384",
+                "PL",
+                "+48 12 345 67 89"
+        );
+        UUID addressId = therapistService.addAddress(request, accountId);
+
+        therapistService.deleteAddress(addressId, accountId);
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThatExceptionOfType(EntityNotFoundException.class)
+                .isThrownBy(() -> therapistService.deleteAddress(addressId, accountId))
+                .withMessage("Address with ID %s not found.", addressId);
     }
 
 
