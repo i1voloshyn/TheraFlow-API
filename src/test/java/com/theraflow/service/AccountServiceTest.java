@@ -31,6 +31,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -51,6 +52,8 @@ class AccountServiceTest {
     private PasswordValidator passwordValidator;
     @Mock
     private AuthService authService;
+    @Mock
+    private EmailService emailService;
 
     @Spy
     private DtoAccountMapper accountMapper;
@@ -101,6 +104,7 @@ class AccountServiceTest {
                 updatedAt);
 
         when(passwordEncoder.encode(rawPassword)).thenReturn(passwordHash);
+        // doNothing().when(emailService).sendEmailConfirmationEmail(email);
         when(accountRepository.saveAndFlush(any(Account.class))).thenReturn(createdAccount);
         when(authService.authenticate(loginRequest)).thenReturn(token);
 

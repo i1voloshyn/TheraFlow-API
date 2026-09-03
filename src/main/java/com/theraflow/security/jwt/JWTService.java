@@ -22,7 +22,7 @@ public class JWTService {
     private final Key secretKey;
     private final Clock clock;
 
-    public String generateToken(AccountPrincipal account) {
+    public String generateAuthToken(AccountPrincipal account) {
         Instant now = clock.instant();
         Instant expiration = now.plus(Duration.ofHours(10L));
         return Jwts.builder()
@@ -36,10 +36,25 @@ public class JWTService {
                 .compact();
     }
 
-    //Validate by ID
+    public String generateEmailVerificationToken(String email) {
+        Instant now = clock.instant();
+        Instant expiration = now.plus(Duration.ofHours(1L));
+        return Jwts.builder()
+                .subject(email)
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(expiration))
+                .signWith(secretKey)
+                .compact();
+    }
+
+    //Validate by ID probably be better
     public boolean validateToken(String token, UserDetails accountPrincipal) {
         String userName = extractUserName(token);
         return (userName.equals(accountPrincipal.getUsername()) && !isTokenExpired(token));
+    }
+
+    public boolean isEmailVerificationTokenExpired(String token) {
+        return isTokenExpired(token);
     }
 
     public String extractUserName(String token) {

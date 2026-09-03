@@ -9,6 +9,19 @@ spring:
   jackson:
     default-property-inclusion: non_null
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: i1voloshyn.ph@gmail.com
+    password: wntrviunjejuqyyj
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+    protocol: smtp
+
   flyway:
     enabled: true
     locations: "classpath:db/migration"
@@ -17,3 +30,6 @@ theraflow:
   password-length:
     min-length: 10
     max-length: 64
+
+app:
+  base-url: http://localhost:8080
