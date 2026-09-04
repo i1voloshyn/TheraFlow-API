@@ -3,7 +3,7 @@ package com.theraflow.service;
 import com.theraflow.dto.AccountRequest;
 import com.theraflow.dto.AccountResponse;
 import com.theraflow.dto.ChangePasswordRequest;
-import com.theraflow.exception.EmailDeliveryException;
+import com.theraflow.event.VerificationEmailRequested;
 import com.theraflow.exception.EntityNotFoundException;
 import com.theraflow.exception.PasswordPolicyException;
 import com.theraflow.exception.TokenExpiredException;
@@ -25,6 +25,7 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -66,7 +67,7 @@ class AccountServiceTest {
     @Mock
     private JWTService jwtService;
     @Mock
-    private EmailService emailService;
+    private ApplicationEventPublisher eventPublisher;
     @Spy
     private DtoAccountMapper accountMapper;
     @InjectMocks
@@ -107,9 +108,14 @@ class AccountServiceTest {
         verify(accountMapper).toResponse(createdAccount, AUTH_TOKEN);
 
         ArgumentCaptor<Account> accountCaptor = ArgumentCaptor.forClass(Account.class);
-        InOrder sideEffects = inOrder(accountRepository, emailService, authService);
+        VerificationEmailRequested expectedEvent = new VerificationEmailRequested(
+                ACCOUNT_ID,
+                EMAIL,
+                VERIFICATION_TOKEN
+        );
+        InOrder sideEffects = inOrder(accountRepository, eventPublisher, authService);
         sideEffects.verify(accountRepository).saveAndFlush(accountCaptor.capture());
-        sideEffects.verify(emailService).sendVerificationEmail(EMAIL, VERIFICATION_TOKEN);
+        sideEffects.verify(eventPublisher).publishEvent(expectedEvent);
         sideEffects.verify(authService).authenticate(new LoginRequest(EMAIL, RAW_PASSWORD));
 
         Account accountToSave = accountCaptor.getValue();
@@ -143,33 +149,9 @@ class AccountServiceTest {
                 jwtService,
                 accountMapper,
                 accountRepository,
-                emailService,
+                eventPublisher,
                 authService
         );
-    }
-
-    @Test
-    void createAccount_whenEmailDeliveryFails_doesNotAuthenticate() {
-        AccountRequest request = validAccountRequest();
-        Account createdAccount = persistedAccount();
-        EmailDeliveryException expectedException = new EmailDeliveryException(
-                EMAIL,
-                new RuntimeException("SMTP unavailable")
-        );
-
-        when(passwordEncoder.encode(RAW_PASSWORD)).thenReturn(PASSWORD_HASH);
-        when(jwtService.generateEmailVerificationToken(EMAIL)).thenReturn(VERIFICATION_TOKEN);
-        when(accountRepository.saveAndFlush(any(Account.class))).thenReturn(createdAccount);
-        doThrow(expectedException)
-                .when(emailService)
-                .sendVerificationEmail(EMAIL, VERIFICATION_TOKEN);
-
-        assertThatThrownBy(() -> accountService.createAccount(request))
-                .isSameAs(expectedException);
-
-        verify(accountRepository).saveAndFlush(any(Account.class));
-        verify(emailService).sendVerificationEmail(EMAIL, VERIFICATION_TOKEN);
-        verifyNoInteractions(authService);
     }
 
     @Test

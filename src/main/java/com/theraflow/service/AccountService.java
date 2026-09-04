@@ -3,6 +3,7 @@ package com.theraflow.service;
 import com.theraflow.dto.AccountRequest;
 import com.theraflow.dto.AccountResponse;
 import com.theraflow.dto.ChangePasswordRequest;
+import com.theraflow.event.VerificationEmailRequested;
 import com.theraflow.exception.EntityNotFoundException;
 import com.theraflow.exception.TokenExpiredException;
 import com.theraflow.mapper.DtoAccountMapper;
@@ -14,6 +15,7 @@ import com.theraflow.security.model.LoginRequest;
 import com.theraflow.util.PasswordValidator;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -32,7 +34,7 @@ public class AccountService {
     private final DtoAccountMapper mapper;
     private final AuthService authService;
     private final JWTService jwtService;
-    private final EmailService emailService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public AccountResponse createAccount(AccountRequest request) {
@@ -46,7 +48,11 @@ public class AccountService {
                 verificationToken
         );
         Account createdAccount = accountRepository.saveAndFlush(accountToSave);
-        emailService.sendVerificationEmail(request.email(), verificationToken);
+        eventPublisher.publishEvent(new VerificationEmailRequested(
+                createdAccount.getId(),
+                createdAccount.getEmail(),
+                verificationToken
+        ));
 
         String token = authService.authenticate(new LoginRequest(request.email(), request.rawPassword()));
 
