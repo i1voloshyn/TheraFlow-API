@@ -12,7 +12,7 @@ import com.theraflow.security.AuthService;
 import com.theraflow.security.jwt.JWTService;
 import com.theraflow.security.model.LoginRequest;
 import com.theraflow.util.PasswordValidator;
-import jakarta.mail.MessagingException;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -67,10 +67,13 @@ public class AccountService {
 
     @Transactional
     public void verifyEmail(String token) {
-        if (jwtService.isEmailVerificationTokenExpired(token)) {
+        final String email;
+        try {
+            email = jwtService.extractEmailFromVerificationToken(token);
+        } catch (ExpiredJwtException ex) {
             throw new TokenExpiredException("The email verification link has expired. Please request a new one.");
         }
-        String email = jwtService.extractUserName(token);
+
         Account account = accountRepository.findAccountByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException(ACCOUNT, email));
 

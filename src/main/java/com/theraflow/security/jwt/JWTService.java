@@ -2,10 +2,10 @@ package com.theraflow.security.jwt;
 
 import com.theraflow.security.model.AccountPrincipal;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -14,11 +14,13 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
-import java.util.function.Function;
 
 @RequiredArgsConstructor
 @Service
 public class JWTService {
+    private static final String TOKEN_TYPE_CLAIM = "tokenType";
+    private static final String ACCOUNT_ID_CLAIM = "accountId";
+
     private final Key secretKey;
     private final Clock clock;
 
@@ -29,7 +31,8 @@ public class JWTService {
                 .subject(account.getUsername())
                 .claim("role", account.getAuthorities()
                         .stream().map(GrantedAuthority::getAuthority).toList())
-                .claim("accountID", account.getAccountId())
+                .claim(ACCOUNT_ID_CLAIM, account.getAccountId().toString())
+                .claim(TOKEN_TYPE_CLAIM, TokenType.ACCESS.name())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiration))
                 .signWith(secretKey)
@@ -41,29 +44,32 @@ public class JWTService {
         Instant expiration = now.plus(Duration.ofHours(1L));
         return Jwts.builder()
                 .subject(email)
+                .claim(TOKEN_TYPE_CLAIM, TokenType.EMAIL_VERIFICATION.name())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiration))
                 .signWith(secretKey)
                 .compact();
     }
 
-    //Validate by ID probably be better
-    public boolean validateToken(String token, UserDetails accountPrincipal) {
-        String userName = extractUserName(token);
-        return (userName.equals(accountPrincipal.getUsername()) && !isTokenExpired(token));
-    }
-
-    public boolean isEmailVerificationTokenExpired(String token) {
-        return isTokenExpired(token);
-    }
-
-    public String extractUserName(String token) {
-        return extractClaim(token, Claims::getSubject);
-    }
-
-    private <T> T extractClaim(String token, Function<Claims, T> claimResolver) {
+    public boolean validateAccessToken(String token, AccountPrincipal accountPrincipal) {
         Claims claims = extractAllClaims(token);
-        return claimResolver.apply(claims);
+
+        return hasTokenType(claims, TokenType.ACCESS)
+                && accountPrincipal.getUsername().equals(claims.getSubject())
+                && accountPrincipal.getAccountId().toString()
+                .equals(claims.get(ACCOUNT_ID_CLAIM, String.class));
+    }
+
+    public String extractUsernameFromAccessToken(String token) {
+        Claims claims = extractAllClaims(token);
+        requireTokenType(claims, TokenType.ACCESS);
+        return claims.getSubject();
+    }
+
+    public String extractEmailFromVerificationToken(String token) {
+        Claims claims = extractAllClaims(token);
+        requireTokenType(claims, TokenType.EMAIL_VERIFICATION);
+        return claims.getSubject();
     }
 
     private Claims extractAllClaims(String token) {
@@ -73,15 +79,22 @@ public class JWTService {
                 .getPayload();
     }
 
-    private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(Date.from(now()));
+    private boolean hasTokenType(Claims claims, TokenType expectedType) {
+        return expectedType.name().equals(claims.get(TOKEN_TYPE_CLAIM, String.class));
     }
 
-    private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
+    private void requireTokenType(Claims claims, TokenType expectedType) {
+        if (!hasTokenType(claims, expectedType)) {
+            throw new JwtException("Expected a " + expectedType + " token");
+        }
     }
 
     private Instant now() {
         return clock.instant();
+    }
+
+    private enum TokenType {
+        ACCESS,
+        EMAIL_VERIFICATION
     }
 }

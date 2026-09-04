@@ -18,7 +18,7 @@ public class AccountPrincipalService implements UserDetailsService {
 
     @Override
     @NullMarked
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public AccountPrincipal loadUserByUsername(String username) throws UsernameNotFoundException {
         var account =
                 accountRepository.findAccountByEmail(username)
                         .orElseThrow

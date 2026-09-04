@@ -9,6 +9,7 @@ import com.theraflow.model.Account;
 import com.theraflow.model.AccountType;
 import com.theraflow.repository.AccountRepository;
 import com.theraflow.security.AuthService;
+import com.theraflow.security.jwt.JWTService;
 import com.theraflow.security.model.LoginRequest;
 import com.theraflow.util.PasswordValidator;
 import com.theraflow.util.PasswordViolation;
@@ -47,17 +48,16 @@ class AccountServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
-
     @Mock
     private PasswordValidator passwordValidator;
     @Mock
     private AuthService authService;
     @Mock
+    JWTService jwtService;
+    @Mock
     private EmailService emailService;
-
     @Spy
     private DtoAccountMapper accountMapper;
-
     @InjectMocks
     private AccountService accountService;
 
@@ -67,7 +67,8 @@ class AccountServiceTest {
         String email = "therapist@example.com";
         String rawPassword = "StrongPassword1!";
         String passwordHash = "encoded-password-hash";
-        String token = "some-valid-token";
+        String authToken = "some-valid-token";
+        String emailVerificationToken = "email-verification-token";
         AccountType type = AccountType.THERAPIST;
         AccountRequest request = new AccountRequest(email, rawPassword, type);
 
@@ -90,6 +91,8 @@ class AccountServiceTest {
                 .id(id)
                 .email(email)
                 .passwordHash(passwordHash)
+                .verificationToken(emailVerificationToken)
+                .verified(false)
                 .type(type)
                 .createdAt(createdAt)
                 .updatedAt(updatedAt)
@@ -98,15 +101,16 @@ class AccountServiceTest {
         AccountResponse expectedResponse = new AccountResponse(
                 id,
                 email,
-                token,
+                authToken,
                 type,
                 createdAt,
                 updatedAt);
 
         when(passwordEncoder.encode(rawPassword)).thenReturn(passwordHash);
-        // doNothing().when(emailService).sendEmailConfirmationEmail(email);
+        when(jwtService.generateEmailVerificationToken(email)).thenReturn(emailVerificationToken);
+        doNothing().when(emailService).sendVerificationEmail(email, emailVerificationToken);
         when(accountRepository.saveAndFlush(any(Account.class))).thenReturn(createdAccount);
-        when(authService.authenticate(loginRequest)).thenReturn(token);
+        when(authService.authenticate(loginRequest)).thenReturn(authToken);
 
         AccountResponse actual = accountService.createAccount(request);
 
@@ -120,9 +124,9 @@ class AccountServiceTest {
 
         processingOrder.verify(passwordValidator).validate(rawPassword);
         processingOrder.verify(passwordEncoder).encode(rawPassword);
-        processingOrder.verify(accountMapper).toAccount(email, passwordHash, type);
+        processingOrder.verify(accountMapper).toAccount(email, passwordHash, type, emailVerificationToken);
         processingOrder.verify(accountRepository).saveAndFlush(any(Account.class));
-        processingOrder.verify(accountMapper).toResponse(createdAccount, token);
+        processingOrder.verify(accountMapper).toResponse(createdAccount, authToken);
     }
 
     @Test
