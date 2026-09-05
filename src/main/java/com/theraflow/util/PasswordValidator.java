@@ -14,10 +14,9 @@ public class PasswordValidator {
 
     private final PasswordLengthProperties passwordLengthProperties;
 
-    private final Set<PasswordViolation> violations = new HashSet<>();
-
     public void validate(String password) {
-        checkPasswordLength(password);
+        Set<PasswordViolation> violations = new HashSet<>();
+        checkPasswordLength(password, violations);
 
         if (!containsSpecialCharacter(password)) {
             violations.add(PasswordViolation.MISSING_SPECIAL_CHARACTER);
@@ -36,7 +35,7 @@ public class PasswordValidator {
         }
     }
 
-    private void checkPasswordLength(String password) {
+    private void checkPasswordLength(String password, Set<PasswordViolation> violations) {
         if (password.length() < passwordLengthProperties.minLength()) {
             violations.add(PasswordViolation.TOO_SHORT);
         }

@@ -4,7 +4,9 @@ import com.theraflow.dto.AccountRequest;
 import com.theraflow.dto.AccountResponse;
 import com.theraflow.dto.ChangePasswordRequest;
 import com.theraflow.event.VerificationEmailRequested;
+import com.theraflow.exception.CurrentPasswordMismatchException;
 import com.theraflow.exception.EntityNotFoundException;
+import com.theraflow.exception.PasswordPolicyException;
 import com.theraflow.exception.TokenExpiredException;
 import com.theraflow.mapper.DtoAccountMapper;
 import com.theraflow.model.Account;
@@ -13,15 +15,16 @@ import com.theraflow.security.AuthService;
 import com.theraflow.security.jwt.JWTService;
 import com.theraflow.security.model.LoginRequest;
 import com.theraflow.util.PasswordValidator;
+import com.theraflow.util.PasswordViolation;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @Service
@@ -63,11 +66,15 @@ public class AccountService {
     public void changePassword(ChangePasswordRequest request, UUID id) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(ACCOUNT, id));
-
         if (!passwordEncoder.matches(request.oldPassword(), account.getPasswordHash())) {
-            throw new BadCredentialsException("The old password does not match your current password");
+            throw new CurrentPasswordMismatchException();
         }
 
+        if (passwordEncoder.matches(request.newPassword(), account.getPasswordHash())) {
+            throw new PasswordPolicyException(Set.of(PasswordViolation.SAME_AS_CURRENT));
+        }
+
+        passwordValidator.validate(request.newPassword());
         account.setPasswordHash(passwordEncoder.encode(request.newPassword()));
     }
 

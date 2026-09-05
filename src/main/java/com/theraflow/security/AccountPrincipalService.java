@@ -4,7 +4,6 @@ import com.theraflow.repository.AccountRepository;
 import com.theraflow.security.model.AccountPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -29,6 +28,7 @@ public class AccountPrincipalService implements UserDetailsService {
                 account.getId(),
                 account.getEmail(),
                 List.of(account.getType()),
-                account.getPasswordHash());
+                account.getPasswordHash(),
+                Boolean.TRUE.equals(account.getVerified()));
     }
 }

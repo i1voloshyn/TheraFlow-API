@@ -1,6 +1,7 @@
 package com.theraflow.exception.exceptionHandler;
 
 import com.theraflow.exception.EntityNotFoundException;
+import com.theraflow.exception.CurrentPasswordMismatchException;
 import com.theraflow.exception.PasswordPolicyException;
 import com.theraflow.exception.model.ErrorCode;
 import com.theraflow.exception.model.ErrorResponse;
@@ -41,15 +42,34 @@ public class GlobalExceptionControllerAdvice {
                 .body(error);
     }
 
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ErrorResponse> handleBadCredentialsException(
-            BadCredentialsException ex,
+    @ExceptionHandler(CurrentPasswordMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleCurrentPasswordMismatchException(
+            CurrentPasswordMismatchException ex,
             HttpServletRequest req) {
         String title = "Incorrect old password";
         URI path = URI.create(req.getRequestURI());
         int statusCode = HttpStatus.UNAUTHORIZED.value();
         var errorCode = ErrorCode.PASSWORD_MISMATCH;
         ErrorResponse error = new ErrorResponse(title, path, statusCode, errorCode, ex.getMessage(), null);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentialsException(
+            BadCredentialsException ex,
+            HttpServletRequest req) {
+        String title = "Authentication failed";
+        URI path = URI.create(req.getRequestURI());
+        int statusCode = HttpStatus.UNAUTHORIZED.value();
+        var errorCode = ErrorCode.AUTHENTICATION_FAILED;
+        ErrorResponse error = new ErrorResponse(
+                title,
+                path,
+                statusCode,
+                errorCode,
+                "Invalid email or password",
+                null
+        );
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 

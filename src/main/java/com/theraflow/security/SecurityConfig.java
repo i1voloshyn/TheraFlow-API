@@ -73,6 +73,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    AuthenticationManager authenticationManager,
+
+                                                   //with each request where is a call to DB in order to get the UserDetails!!!! IT'S KINDA BAD
                                                    JwtAuthenticationFilter jwtAuthenticationFilter) {
         http
                 .csrf(AbstractHttpConfigurer::disable)

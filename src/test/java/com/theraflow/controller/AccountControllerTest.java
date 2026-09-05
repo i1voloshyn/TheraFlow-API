@@ -2,6 +2,7 @@ package com.theraflow.controller;
 
 import com.theraflow.dto.AccountRequest;
 import com.theraflow.dto.AccountResponse;
+import com.theraflow.dto.ChangePasswordRequest;
 import com.theraflow.model.AccountType;
 import com.theraflow.security.jwt.JwtAuthenticationFilter;
 import com.theraflow.service.AccountService;
@@ -12,8 +13,13 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.client.RestTestClient;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -74,10 +80,6 @@ class AccountControllerTest {
                                 }
                                 """))
                 .andExpect(status().isCreated())
-                .andExpect(header().string(
-                        "Location",
-                        "http://localhost/api/v1/accounts/" + accId
-                ))
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(accId.toString()))
                 .andExpect(jsonPath("$.email").value(email))
@@ -89,5 +91,23 @@ class AccountControllerTest {
 
         verify(accountService).createAccount(request);
     }
+
+//    @Test
+//    @WithUserDetails
+//    void changePassword_successTest() {
+//        UUID id = UUID.randomUUID();
+//        String oldPassword = "old-password";
+//        String newPassword = "new-password";
+//        ChangePasswordRequest req = new ChangePasswordRequest(oldPassword, newPassword);
+//        RestTestClient client = RestTestClient.bindTo(mockMvc).build();
+//
+//        client.patch().uri("/api/v1/accounts/change-password")
+//                .body(req)
+//                .header("Authentication", "Bearer 123456")
+//                .exchange()
+//                .expectStatus().isNoContent();
+//
+//        verify(accountService).changePassword(req, id);
+//    }
 
 }

@@ -15,6 +15,7 @@ public class DtoAccountMapper {
                 .passwordHash(passwordHash)
                 .type(type)
                 .verificationToken(token)
+                .verified(false)
                 .createdAt(null)
                 .updatedAt(null)
                 .build();
