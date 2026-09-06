@@ -1,7 +1,9 @@
 package com.theraflow.dto;
 
+import jakarta.validation.constraints.NotBlank;
+
 public record ChangePasswordRequest(
-        String oldPassword,
-        String newPassword
+        @NotBlank String oldPassword,
+        @NotBlank String newPassword
 ) {
 }

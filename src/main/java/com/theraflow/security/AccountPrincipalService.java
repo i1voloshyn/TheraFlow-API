@@ -27,8 +27,8 @@ public class AccountPrincipalService implements UserDetailsService {
         return new AccountPrincipal(
                 account.getId(),
                 account.getEmail(),
-                List.of(account.getType()),
                 account.getPasswordHash(),
+                List.of(account.getType()),
                 Boolean.TRUE.equals(account.getVerified()));
     }
 }

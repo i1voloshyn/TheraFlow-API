@@ -20,8 +20,8 @@ public class AccountPrincipal implements UserDetails {
     @Getter
     private UUID accountId;
     private String email;
-    private final List<AccountType> roles;
     private String passwordHash;
+    private final List<AccountType> roles;
     private boolean verified;
 
     @Override
