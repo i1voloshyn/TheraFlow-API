@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
@@ -13,14 +14,22 @@ import java.util.UUID;
 
 @AllArgsConstructor
 public class AccountPrincipal implements UserDetails {
+    private static final GrantedAuthority UNVERIFIED_AUTHORITY =
+            new SimpleGrantedAuthority("ROLE_UNVERIFIED");
+
     @Getter
     private UUID accountId;
     private String email;
-    private final List<AccountType> roles;
     private String passwordHash;
+    private final List<AccountType> roles;
+    private boolean verified;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        if (!verified) {
+            return List.of(UNVERIFIED_AUTHORITY);
+        }
+
         return roles.stream()
                 .map(AccountType::toAuthority)
                 .toList();
@@ -36,4 +45,8 @@ public class AccountPrincipal implements UserDetails {
         return email;
     }
 
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 }

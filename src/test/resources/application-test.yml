@@ -1,0 +1,12 @@
+spring:
+  mail:
+    host: localhost
+    port: 3025
+    username: spring
+    password: boot
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            required: false

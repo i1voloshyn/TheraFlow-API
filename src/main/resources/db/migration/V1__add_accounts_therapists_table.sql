@@ -2,12 +2,14 @@ CREATE TYPE account_type AS ENUM ('THERAPIST', 'GUARDIAN');
 
 CREATE TABLE accounts
 (
-    id            UUID                              DEFAULT gen_random_uuid(),
-    email         TEXT                     NOT NULL,
-    password_hash TEXT                     NOT NULL,
-    account_type  account_type             NOT NULL,
-    created_at    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id                 UUID                              DEFAULT gen_random_uuid(),
+    email              TEXT                     NOT NULL,
+    password_hash      TEXT                     NOT NULL,
+    account_type       account_type             NOT NULL,
+    verification_token TEXT,
+    verified           BOOLEAN                           DEFAULT false,
+    created_at         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT pk_accounts PRIMARY KEY (id),
     CONSTRAINT uq_accounts_email

@@ -25,7 +25,7 @@ public class AuthService {
                 );
         AccountPrincipal principal = extractAccountPrincipal(authentication);
 
-        return JWTService.generateToken(principal);
+        return JWTService.generateAuthToken(principal);
     }
 
     private AccountPrincipal extractAccountPrincipal(Authentication auth) {

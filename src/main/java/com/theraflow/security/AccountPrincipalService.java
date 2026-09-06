@@ -4,7 +4,6 @@ import com.theraflow.repository.AccountRepository;
 import com.theraflow.security.model.AccountPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -18,7 +17,7 @@ public class AccountPrincipalService implements UserDetailsService {
 
     @Override
     @NullMarked
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public AccountPrincipal loadUserByUsername(String username) throws UsernameNotFoundException {
         var account =
                 accountRepository.findAccountByEmail(username)
                         .orElseThrow
@@ -28,7 +27,8 @@ public class AccountPrincipalService implements UserDetailsService {
         return new AccountPrincipal(
                 account.getId(),
                 account.getEmail(),
+                account.getPasswordHash(),
                 List.of(account.getType()),
-                account.getPasswordHash());
+                Boolean.TRUE.equals(account.getVerified()));
     }
 }

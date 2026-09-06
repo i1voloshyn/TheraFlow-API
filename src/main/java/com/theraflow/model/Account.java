@@ -46,12 +46,19 @@ public class Account {
     @Column(name = "account_type", nullable = false)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private AccountType type;
+    @Column(name = "verification_token")
+    @Setter
+    @Nullable
+    private String verificationToken;
+    @Nullable
+    @Setter
+    private Boolean verified;
     @Generated(event = EventType.INSERT)
-    @Column(name = "created_at",insertable = false)
+    @Column(name = "created_at", insertable = false)
     @Nullable
     private Instant createdAt;
     @Generated(event = {EventType.INSERT, EventType.UPDATE})
-    @Column(name = "updated_at",insertable = false)
+    @Column(name = "updated_at", insertable = false)
     @Nullable
     private Instant updatedAt;
 }
