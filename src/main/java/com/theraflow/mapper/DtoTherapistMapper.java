@@ -6,7 +6,8 @@ import com.theraflow.dto.ProfileDetailsResponse;
 import com.theraflow.dto.TherapistRequest;
 import com.theraflow.dto.TherapistResponse;
 import com.theraflow.model.About;
-import com.theraflow.model.Address;
+import com.theraflow.model.Account;
+import com.theraflow.model.about.Address;
 import com.theraflow.model.Therapist;
 import org.springframework.stereotype.Component;
 
@@ -15,9 +16,9 @@ import java.util.UUID;
 @Component
 public class DtoTherapistMapper {
 
-    public Therapist toTherapist(TherapistRequest request, UUID accountId) {
+    public Therapist toTherapist(TherapistRequest request, Account account) {
         return Therapist.builder()
-                .accountId(accountId)
+                .account(account)
                 .firstName(request.firstName())
                 .lastName(request.lastName())
                 .licenseNumber(request.licenseNumber())
@@ -28,7 +29,7 @@ public class DtoTherapistMapper {
     public TherapistResponse toTherapistResponse(Therapist therapist) {
         return new TherapistResponse(
                 therapist.getId(),
-                therapist.getAccountId(),
+                therapist.getAccount().getId(),
                 therapist.getFirstName(),
                 therapist.getLastName(),
                 therapist.getLicenseNumber(),

@@ -1,10 +1,13 @@
 package com.theraflow.model;
 
+import com.theraflow.model.about.Address;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,7 +37,9 @@ public final class Therapist {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    private UUID accountId;
+    @OneToOne
+    @JoinColumn(name = "account_id")
+    private Account account;
     @Setter
     private String firstName;
     @Setter

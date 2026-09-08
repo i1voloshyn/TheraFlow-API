@@ -12,6 +12,7 @@ import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabas
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 
+import java.util.Objects;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,7 +41,7 @@ class TherapistRepositoryTest {
         Account saved = accountRepository.save(account);
 
         Therapist therapistToSave = Therapist.builder()
-                .accountId(saved.getId())
+                .account(saved)
                 .firstName("Jeremiah")
                 .lastName("Nevada")
                 .licenseNumber("RTF 5456")
@@ -65,7 +66,7 @@ class TherapistRepositoryTest {
         UUID randomId = UUID.randomUUID();
 
         Therapist therapistToSave = Therapist.builder()
-                .accountId(randomId)
+                .account(Objects.requireNonNull(accountRepository.findById(randomId).orElse(null)))
                 .firstName("Jeremiah")
                 .lastName("Nevada")
                 .licenseNumber("RTF 5456")

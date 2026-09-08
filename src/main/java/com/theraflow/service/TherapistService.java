@@ -8,7 +8,8 @@ import com.theraflow.dto.TherapistResponse;
 import com.theraflow.exception.EntityNotFoundException;
 import com.theraflow.mapper.DtoTherapistMapper;
 import com.theraflow.model.About;
-import com.theraflow.model.Address;
+import com.theraflow.model.Account;
+import com.theraflow.model.about.Address;
 import com.theraflow.model.Therapist;
 import com.theraflow.repository.AccountRepository;
 import com.theraflow.repository.TherapistRepository;
@@ -32,7 +33,9 @@ public class TherapistService {
 
     public TherapistResponse createProfile(TherapistRequest request, UUID accountId) {
 
-        Therapist therapist = therapistRepository.saveAndFlush(mapper.toTherapist(request, accountId));
+        Account accountProxy = accountRepository.getReferenceById(accountId);
+
+        Therapist therapist = therapistRepository.saveAndFlush(mapper.toTherapist(request, accountProxy));
 
         return mapper.toTherapistResponse(therapist);
     }

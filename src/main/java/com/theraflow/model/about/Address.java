@@ -1,4 +1,4 @@
-package com.theraflow.model;
+package com.theraflow.model.about;
 
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
