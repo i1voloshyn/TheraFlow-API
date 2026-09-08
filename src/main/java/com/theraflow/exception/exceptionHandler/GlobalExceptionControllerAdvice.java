@@ -7,6 +7,7 @@ import com.theraflow.exception.model.ErrorCode;
 import com.theraflow.exception.model.ErrorResponse;
 import com.theraflow.exception.model.InvalidParam;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -19,6 +20,26 @@ import java.util.Locale;
 
 @RestControllerAdvice
 public class GlobalExceptionControllerAdvice {
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(
+            DataIntegrityViolationException ex,
+            HttpServletRequest req) {
+        String title = "Resource conflict";
+        URI path = URI.create(req.getRequestURI());
+        int statusCode = HttpStatus.CONFLICT.value();
+        var errorCode = ErrorCode.RESOURCE_CONFLICT;
+        ErrorResponse error = new ErrorResponse(
+                title,
+                path,
+                statusCode,
+                errorCode,
+                "The request conflicts with existing data",
+                null
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
 
     @ExceptionHandler(PasswordPolicyException.class)
     public ResponseEntity<ErrorResponse> handlePasswordPolicyException(

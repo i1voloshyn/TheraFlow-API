@@ -18,13 +18,15 @@ public class EmailService {
     private static final String VERIFY_EMAIL_PATH = "/api/v1/accounts/verify-email";
     @Value("${app.base-url}")
     private String baseUrl;
+    @Value("${app.mail-from}")
+    private String fromEmail;
     private final JavaMailSender mailSender;
 
     public void sendVerificationEmail(String toEmail, String token) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
-
+            helper.setFrom(fromEmail);
             helper.setTo(toEmail);
             helper.setSubject(ACCOUNT_VERIFICATION);
             helper.setText(createVerificationEmail(token), true);

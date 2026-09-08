@@ -1,12 +1,16 @@
 spring:
   mail:
-    host: localhost
+    host: 127.0.0.1
     port: 3025
+    protocol: smtp
+    password: root
     username: spring
-    password: boot
     properties:
       mail:
         smtp:
           auth: true
           starttls:
-            required: false
+            enable: true
+
+app:
+  mail-from: no-reply@theraflow.com
