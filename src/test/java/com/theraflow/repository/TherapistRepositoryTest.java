@@ -1,8 +1,8 @@
 package com.theraflow.repository;
 
 import com.theraflow.TestcontainersConfiguration;
-import com.theraflow.model.Account;
-import com.theraflow.model.AccountType;
+import com.theraflow.model.account.Account;
+import com.theraflow.model.account.AccountType;
 import com.theraflow.model.Therapist;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;

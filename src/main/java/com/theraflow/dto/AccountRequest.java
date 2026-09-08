@@ -1,6 +1,6 @@
 package com.theraflow.dto;
 
-import com.theraflow.model.AccountType;
+import com.theraflow.model.account.AccountType;
 import jakarta.validation.constraints.Email;
 import org.jspecify.annotations.NonNull;
 

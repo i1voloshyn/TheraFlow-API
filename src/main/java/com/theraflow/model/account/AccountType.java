@@ -1,4 +1,4 @@
-package com.theraflow.model;
+package com.theraflow.model.account;
 
 import jakarta.validation.constraints.NotNull;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

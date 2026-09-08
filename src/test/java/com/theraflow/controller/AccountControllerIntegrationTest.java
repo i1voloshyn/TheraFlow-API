@@ -8,7 +8,7 @@ import com.theraflow.dto.AccountRequest;
 import com.theraflow.dto.AccountResponse;
 import com.theraflow.exception.model.ErrorCode;
 import com.theraflow.exception.model.ErrorResponse;
-import com.theraflow.model.AccountType;
+import com.theraflow.model.account.AccountType;
 import com.theraflow.repository.AccountRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;

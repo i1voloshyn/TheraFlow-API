@@ -1,7 +1,7 @@
 package com.theraflow.mapper;
 
-import com.theraflow.model.AccountType;
-import com.theraflow.model.Account;
+import com.theraflow.model.account.AccountType;
+import com.theraflow.model.account.Account;
 import com.theraflow.dto.AccountResponse;
 import org.springframework.stereotype.Component;
 

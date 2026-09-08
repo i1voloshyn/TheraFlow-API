@@ -1,15 +1,12 @@
-package com.theraflow.model;
+package com.theraflow.model.patient;
 
-import com.theraflow.model.about.About;
-import com.theraflow.model.about.Address;
-import com.theraflow.model.account.Account;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,7 +21,7 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
-import java.util.List;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Getter
@@ -33,32 +30,26 @@ import java.util.UUID;
 @Builder
 @NullMarked
 @Entity
-@Table(name = "therapists")
-public final class Therapist {
+@Table(name = "patients")
+public final class Patient {
     @Nullable
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    @OneToOne
-    @JoinColumn(name = "account_id")
-    private Account account;
     @Setter
     private String firstName;
     @Setter
     private String lastName;
     @Setter
-    private String licenseNumber; //PL PWZ ?
-    @Nullable
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    private Sex sex;
     @Setter
-    private String professionalTitle;
-    @Nullable
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(columnDefinition = "CHAR(11)")
+    private String pesel;
     @Setter
-    @JdbcTypeCode(SqlTypes.JSON)
-    private About about;
-    @Nullable
-    @Setter
-    @JdbcTypeCode(SqlTypes.JSON)
-    private List<Address> address;
+    private LocalDate dateOfBirth;
     @Generated(event = EventType.INSERT)
     @Column(name = "created_at", insertable = false)
     @Nullable

@@ -1,4 +1,4 @@
-package com.theraflow.model;
+package com.theraflow.model.account;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

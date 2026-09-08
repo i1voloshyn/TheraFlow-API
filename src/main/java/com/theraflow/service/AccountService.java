@@ -9,7 +9,7 @@ import com.theraflow.exception.EntityNotFoundException;
 import com.theraflow.exception.PasswordPolicyException;
 import com.theraflow.exception.TokenExpiredException;
 import com.theraflow.mapper.DtoAccountMapper;
-import com.theraflow.model.Account;
+import com.theraflow.model.account.Account;
 import com.theraflow.repository.AccountRepository;
 import com.theraflow.security.AuthService;
 import com.theraflow.security.jwt.JWTService;

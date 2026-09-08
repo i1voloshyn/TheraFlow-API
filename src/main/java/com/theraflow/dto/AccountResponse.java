@@ -1,6 +1,6 @@
 package com.theraflow.dto;
 
-import com.theraflow.model.AccountType;
+import com.theraflow.model.account.AccountType;
 
 import java.time.Instant;
 import java.util.UUID;

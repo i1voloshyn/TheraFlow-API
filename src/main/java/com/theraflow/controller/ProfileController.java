@@ -5,7 +5,7 @@ import com.theraflow.dto.AddressRequest;
 import com.theraflow.dto.ProfileDetailsResponse;
 import com.theraflow.dto.TherapistRequest;
 import com.theraflow.dto.TherapistResponse;
-import com.theraflow.model.About;
+import com.theraflow.model.about.About;
 import com.theraflow.model.about.Address;
 import com.theraflow.security.model.AccountPrincipal;
 import com.theraflow.service.TherapistService;
