@@ -43,9 +43,8 @@ public class TherapistService {
     @Transactional(readOnly = true)
     public ProfileDetailsResponse getProfileDetails(UUID accountId) {
         Therapist therapist = findTherapistByAccountId(accountId);
-        String email = accountRepository.findById(accountId)
-                .orElseThrow(() -> new EntityNotFoundException("Account", accountId))
-                .getEmail();
+
+        String email =therapist.getAccount().getEmail();
 
         return mapper.toProfileDetailsResponse(therapist, email);
     }

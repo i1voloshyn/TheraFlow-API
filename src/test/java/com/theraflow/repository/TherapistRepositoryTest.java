@@ -65,13 +65,19 @@ class TherapistRepositoryTest {
     void createProfile_shouldThrownException_forInvalidAccountId() {
         UUID randomId = UUID.randomUUID();
 
+        Account account = Account.builder()
+                .email("test@email")
+                .passwordHash("valid_passpowrd_hash")
+                .type(AccountType.THERAPIST)
+                .build();
+
         Therapist therapistToSave = Therapist.builder()
-                .account(Objects.requireNonNull(accountRepository.findById(randomId).orElse(null)))
                 .firstName("Jeremiah")
                 .lastName("Nevada")
                 .licenseNumber("RTF 5456")
                 .professionalTitle("Doctor")
                 .build();
+
         assertThatExceptionOfType(DataIntegrityViolationException.class)
                 .isThrownBy(() -> repository.saveAndFlush(therapistToSave));
 

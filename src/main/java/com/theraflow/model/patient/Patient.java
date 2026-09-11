@@ -1,18 +1,25 @@
 package com.theraflow.model.patient;
 
+import com.theraflow.model.Therapist;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.generator.EventType;
@@ -22,16 +29,19 @@ import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
 @NullMarked
 @Entity
 @Table(name = "patients")
-public final class Patient {
+public class Patient {
     @Nullable
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -58,4 +68,9 @@ public final class Patient {
     @Column(name = "updated_at", insertable = false)
     @Nullable
     private Instant updatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "therapist_id")
+    @Setter
+    private Therapist therapist;
 }

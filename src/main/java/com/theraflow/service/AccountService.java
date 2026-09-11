@@ -50,16 +50,16 @@ public class AccountService {
                 request.type(),
                 verificationToken
         );
-        Account createdAccount = accountRepository.saveAndFlush(accountToSave);
+        accountRepository.save(accountToSave);
         eventPublisher.publishEvent(new VerificationEmailRequested(
-                createdAccount.getId(),
-                createdAccount.getEmail(),
+                accountToSave.getId(),
+                accountToSave.getEmail(),
                 verificationToken
         ));
 
         String token = authService.authenticate(new LoginRequest(request.email(), request.rawPassword()));
 
-        return mapper.toResponse(createdAccount, token);
+        return mapper.toResponse(accountToSave, token);
     }
 
     @Transactional

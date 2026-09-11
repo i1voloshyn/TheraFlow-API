@@ -60,7 +60,7 @@ class TherapistServiceTest {
                 .type(AccountType.THERAPIST)
                 .build();
 
-        accountId = accountRepository.saveAndFlush(account).getId();
+        accountId = accountRepository.save(account).getId();
     }
 
     @Test
