@@ -18,5 +18,6 @@ public interface DtoPatientMapper {
     @Mapping(target = "therapist", ignore = true)
     Patient toPatient(PatientRequest request);
 
+
     PatientResponse toResponse(Patient patient);
 }

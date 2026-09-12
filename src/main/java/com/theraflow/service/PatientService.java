@@ -9,6 +9,8 @@ import com.theraflow.model.patient.Patient;
 import com.theraflow.repository.PatientsRepository;
 import com.theraflow.repository.TherapistRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,8 +30,14 @@ public class PatientService {
 
         Patient patient = mapper.toPatient(request);
         therapist.addPatient(patient);
-        patientsRepository.save(patient);
+        patientsRepository.saveAndFlush(patient);
         return mapper.toResponse(patient);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PatientResponse> getAll(UUID accountId, Pageable pageable) {
+        return patientsRepository.findAllByTherapistAccountId(accountId, pageable)
+                .map(mapper::toResponse);
     }
 
 }
