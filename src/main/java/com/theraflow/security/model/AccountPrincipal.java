@@ -1,6 +1,6 @@
 package com.theraflow.security.model;
 
-import com.theraflow.model.account.AccountType;
+import com.theraflow.account.model.AccountType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.jspecify.annotations.Nullable;

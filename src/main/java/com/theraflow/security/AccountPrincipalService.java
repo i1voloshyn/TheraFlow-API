@@ -1,6 +1,6 @@
 package com.theraflow.security;
 
-import com.theraflow.repository.AccountRepository;
+import com.theraflow.account.AccountRepository;
 import com.theraflow.security.model.AccountPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;

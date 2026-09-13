@@ -1,7 +1,7 @@
 package com.theraflow.event;
 
 import com.theraflow.exception.EmailDeliveryException;
-import com.theraflow.service.EmailService;
+import com.theraflow.email.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

@@ -1,7 +1,7 @@
 package com.theraflow.event;
 
 import com.theraflow.exception.EmailDeliveryException;
-import com.theraflow.service.EmailService;
+import com.theraflow.email.EmailService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
