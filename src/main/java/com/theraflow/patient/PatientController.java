@@ -3,6 +3,7 @@ package com.theraflow.patient;
 import com.theraflow.patient.dto.PatientRequest;
 import com.theraflow.patient.dto.PatientResponse;
 import com.theraflow.security.model.AccountPrincipal;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -27,7 +28,7 @@ public class PatientController {
 
     @PostMapping
     public ResponseEntity<PatientResponse> createPatient(
-            @RequestBody PatientRequest request,
+            @Valid @RequestBody PatientRequest request,
             @AuthenticationPrincipal AccountPrincipal accountPrincipal
     ) {
         var patient = patientService.createPatient(request, accountPrincipal.getAccountId());

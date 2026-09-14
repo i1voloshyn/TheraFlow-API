@@ -1,16 +1,19 @@
 package com.theraflow.exception.exceptionHandler;
 
-import com.theraflow.exception.EntityNotFoundException;
 import com.theraflow.exception.CurrentPasswordMismatchException;
+import com.theraflow.exception.EntityNotFoundException;
 import com.theraflow.exception.PasswordPolicyException;
 import com.theraflow.exception.model.ErrorCode;
 import com.theraflow.exception.model.ErrorResponse;
 import com.theraflow.exception.model.InvalidParam;
+import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -23,20 +26,10 @@ public class GlobalExceptionControllerAdvice {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(
-            DataIntegrityViolationException ex,
             HttpServletRequest req) {
-        String title = "Resource conflict";
-        URI path = URI.create(req.getRequestURI());
-        int statusCode = HttpStatus.CONFLICT.value();
-        var errorCode = ErrorCode.RESOURCE_CONFLICT;
-        ErrorResponse error = new ErrorResponse(
-                title,
-                path,
-                statusCode,
-                errorCode,
-                "The request conflicts with existing data",
-                null
-        );
+
+        ErrorCode code = ErrorCode.RESOURCE_ALREADY_EXISTS;
+        ErrorResponse error = errorResponse(req, code, null, null);
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
@@ -45,10 +38,7 @@ public class GlobalExceptionControllerAdvice {
     public ResponseEntity<ErrorResponse> handlePasswordPolicyException(
             PasswordPolicyException ex,
             HttpServletRequest req) {
-        String title = "Password does not meet the security requirements";
-        URI path = URI.create(req.getRequestURI());
-        int statusCode = HttpStatus.BAD_REQUEST.value();
-        var errorCode = ErrorCode.WEAK_PASSWORD;
+
         List<InvalidParam> invalidParams = ex.getViolations()
                 .stream()
                 .map(violation -> new InvalidParam(
@@ -56,8 +46,8 @@ public class GlobalExceptionControllerAdvice {
                         violation.getMessageTemplate()
                 ))
                 .toList();
-        ErrorResponse error = new ErrorResponse(
-                title, path, statusCode, errorCode, ex.getMessage(), invalidParams);
+        ErrorResponse error = errorResponse(req, ErrorCode.WEAK_PASSWORD, null, invalidParams);
+
         return ResponseEntity
                 .badRequest()
                 .body(error);
@@ -65,32 +55,15 @@ public class GlobalExceptionControllerAdvice {
 
     @ExceptionHandler(CurrentPasswordMismatchException.class)
     public ResponseEntity<ErrorResponse> handleCurrentPasswordMismatchException(
-            CurrentPasswordMismatchException ex,
             HttpServletRequest req) {
-        String title = "Incorrect old password";
-        URI path = URI.create(req.getRequestURI());
-        int statusCode = HttpStatus.UNAUTHORIZED.value();
-        var errorCode = ErrorCode.PASSWORD_MISMATCH;
-        ErrorResponse error = new ErrorResponse(title, path, statusCode, errorCode, ex.getMessage(), null);
+        ErrorResponse error = errorResponse(req, ErrorCode.PASSWORD_MISMATCH, null, null);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErrorResponse> handleBadCredentialsException(
-            BadCredentialsException ex,
             HttpServletRequest req) {
-        String title = "Authentication failed";
-        URI path = URI.create(req.getRequestURI());
-        int statusCode = HttpStatus.UNAUTHORIZED.value();
-        var errorCode = ErrorCode.AUTHENTICATION_FAILED;
-        ErrorResponse error = new ErrorResponse(
-                title,
-                path,
-                statusCode,
-                errorCode,
-                "Invalid email or password",
-                null
-        );
+        ErrorResponse error = errorResponse(req, ErrorCode.AUTHENTICATION_FAILED, null, null);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
@@ -98,12 +71,39 @@ public class GlobalExceptionControllerAdvice {
     public ResponseEntity<ErrorResponse> handleEntityNotFoundException(
             EntityNotFoundException ex,
             HttpServletRequest req) {
-        String title = "Requested entity was not found";
-        URI path = URI.create(req.getRequestURI());
-        int statusCode = HttpStatus.NOT_FOUND.value();
-        var errorCode = ErrorCode.ENTITY_NOT_FOUND;
-        ErrorResponse error = new ErrorResponse(title, path, statusCode, errorCode, ex.getMessage(), null);
+
+        ErrorResponse error = errorResponse(req, ErrorCode.ENTITY_NOT_FOUND, ex.getMessage(), null);
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(
+            MethodArgumentNotValidException ex,
+            HttpServletRequest req
+    ) {
+        var errors = ex.getBindingResult().getAllErrors()
+                .stream().map(error -> {
+                    String fieldName = ((FieldError) error).getField();
+                    String errorMessage = error.getDefaultMessage();
+                    return new InvalidParam(fieldName, errorMessage);
+                }).toList();
+
+        ErrorResponse error = errorResponse(req, ErrorCode.INVALID_INPUT, null, errors);
+
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    private ErrorResponse errorResponse(HttpServletRequest req,
+                                        ErrorCode code,
+                                        @Nullable String message,
+                                        @Nullable List<InvalidParam> params
+    ) {
+
+        URI path = URI.create(req.getRequestURI());
+        String errorMessage = code.getMessage()==null ? message:code.getMessage();
+
+        return new ErrorResponse(code.getTitle(), path, code.getHttpStatus().value(), code, errorMessage, params);
+    }
+
 }

@@ -10,7 +10,7 @@ public class PasswordPolicyException extends RuntimeException {
     private final Set<PasswordViolation> violations;
 
     public PasswordPolicyException(Set<PasswordViolation> violations) {
-        super("Password does not satisfied the rawPassword policy");
+        super("Password does not satisfied the password policy");
         this.violations = Set.copyOf(violations);
     }
 }

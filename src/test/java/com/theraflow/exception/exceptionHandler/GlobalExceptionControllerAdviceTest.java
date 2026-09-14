@@ -18,7 +18,6 @@ class GlobalExceptionControllerAdviceTest {
         MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/auth/login");
 
         ErrorResponse error = advice.handleBadCredentialsException(
-                new BadCredentialsException("Internal authentication details"),
                 request
         ).getBody();
 
@@ -34,7 +33,6 @@ class GlobalExceptionControllerAdviceTest {
                 new MockHttpServletRequest("PATCH", "/api/v1/accounts/change-password");
 
         ErrorResponse error = advice.handleCurrentPasswordMismatchException(
-                new CurrentPasswordMismatchException(),
                 request
         ).getBody();
 

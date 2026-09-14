@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest(properties =
         "jwt.secret=MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=")
-class AccountServiceIntegrationTest {
+class AccountServiceIT {
     private static final String EMAIL = "therapist@example.com";
     private static final String RAW_PASSWORD = "StrongPassword1!";
 

@@ -12,7 +12,6 @@ import com.theraflow.account.model.AccountType;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -33,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 )
 @AutoConfigureRestTestClient
 @Import(TestcontainersConfiguration.class)
-public class AccountControllerIntegrationTest {
+public class AccountControllerIT {
     private static final String ACCOUNTS_PATH = "/api/v1/accounts";
     private static final String VALID_PASSWORD = "123!ValidPassword";
 
@@ -94,7 +93,7 @@ public class AccountControllerIntegrationTest {
                 .expectBody(ErrorResponse.class)
                 .value(error -> {
                     assertThat(error.status()).isEqualTo(HttpStatus.CONFLICT.value());
-                    assertThat(error.errorCode()).isEqualTo(ErrorCode.RESOURCE_CONFLICT);
+                    assertThat(error.errorCode()).isEqualTo(ErrorCode.RESOURCE_ALREADY_EXISTS);
                 });
 
         assertThat(accountRepository.count()).isOne();
