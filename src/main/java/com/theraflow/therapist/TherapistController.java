@@ -28,8 +28,8 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/profile")
-public class ProfileController {
+@RequestMapping("/api/v1/therapist")
+public class TherapistController {
 
     private final TherapistService therapistService;
 

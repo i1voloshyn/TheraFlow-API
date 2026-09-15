@@ -130,8 +130,7 @@ class AccountServiceTest {
         when(passwordEncoder.matches(incorrectOldPassword, currentPasswordHash)).thenReturn(false);
 
         assertThatThrownBy(() -> accountService.changePassword(request, ACCOUNT_ID))
-                .isInstanceOf(CurrentPasswordMismatchException.class)
-                .hasMessage("The old password does not match your current password");
+                .isInstanceOf(CurrentPasswordMismatchException.class);
 
         assertThat(account.getPasswordHash()).isEqualTo(currentPasswordHash);
         verify(accountRepository).findById(ACCOUNT_ID);

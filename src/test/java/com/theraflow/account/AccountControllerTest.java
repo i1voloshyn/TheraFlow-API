@@ -43,14 +43,9 @@ class AccountControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-    @Autowired
-    GlobalExceptionControllerAdvice advice;
 
     @MockitoBean
     private AccountService accountService;
-
-    @MockitoBean
-    private AccountPrincipalService accountPrincipalService;
 
     @MockitoBean
     private JWTService jwtService;

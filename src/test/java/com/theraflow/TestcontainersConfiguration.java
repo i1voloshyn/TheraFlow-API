@@ -11,7 +11,6 @@ public class TestcontainersConfiguration {
     @Container
     private static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:18.4");
 
-
     @Bean
     @ServiceConnection
     PostgreSQLContainer postgresContainer() {
