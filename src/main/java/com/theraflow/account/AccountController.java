@@ -41,7 +41,7 @@ public class AccountController {
     @PatchMapping("/change-password")
     public ResponseEntity<Void> changePassword(
             @Valid @RequestBody ChangePasswordRequest request,
-            @AuthenticationPrincipal(expression = "accountId") UUID accountId
+            @AuthenticationPrincipal UUID accountId
     ) {
         accountService.changePassword(request, accountId);
 

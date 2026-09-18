@@ -13,6 +13,7 @@ import com.theraflow.security.model.AccountPrincipal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
@@ -35,10 +36,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(
-        value = AccountController.class,
-        properties = "jwt.secret=MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE="
+        value = AccountController.class
 )
-@Import(SecurityConfig.class)
 class AccountControllerTest {
 
     @Autowired
@@ -46,9 +45,6 @@ class AccountControllerTest {
 
     @MockitoBean
     private AccountService accountService;
-
-    @MockitoBean
-    private JWTService jwtService;
 
     @DisplayName("Should create and return new account for valid input data")
     @Test
@@ -125,7 +121,7 @@ class AccountControllerTest {
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
 
-        verify(accountService).changePassword(req, accountId);
+        verify(accountService).changePassword(req, accountPrincipal.getAccountId());
     }
 
     @DisplayName("Should return 401 and CurrentPasswordMissmatchException for wrong current password")
