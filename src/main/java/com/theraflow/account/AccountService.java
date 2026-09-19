@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
-public class AccountService {
+public class AccountService  {
     private static final String ACCOUNT = "Account";
 
     private final AccountRepository accountRepository;

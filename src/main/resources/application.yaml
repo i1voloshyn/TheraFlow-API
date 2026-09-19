@@ -36,3 +36,10 @@ app:
   base-url: http://localhost:8080
   mail-from: ${MAIL_FROM}
 
+  security:
+    jwt:
+      secret-key: ${JWT_SECRET}
+      expiration: 60_000 #1 minute
+      refresh-token:
+        expiration: 604800000 #7 days
+
