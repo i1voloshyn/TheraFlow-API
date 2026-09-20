@@ -1,6 +1,6 @@
 package com.theraflow.therapist;
 
-import com.theraflow.security.TheraflowUser;
+import com.theraflow.security.model.TheraflowUser;
 import com.theraflow.therapist.about.About;
 import com.theraflow.therapist.about.Address;
 import com.theraflow.therapist.dto.AboutRequest;

@@ -1,8 +1,8 @@
-package com.theraflow.security;
+package com.theraflow.security.model;
 
+import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -16,6 +16,7 @@ public class TheraflowUser implements UserDetails {
     @Getter
     private final UUID accountId;
     private final String email;
+    @Nullable
     private final String password;
 
     @Override

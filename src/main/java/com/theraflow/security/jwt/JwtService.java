@@ -1,11 +1,13 @@
 package com.theraflow.security.jwt;
 
+import com.theraflow.security.model.TheraflowUser;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -14,8 +16,10 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 import java.util.function.Function;
 
+@Slf4j
 @Service
 public class JwtService {
     @Value("${app.security.jwt.secret-key}")
@@ -27,13 +31,13 @@ public class JwtService {
 
     private Clock clock = Clock.systemUTC();
 
-    public String generateToken(UserDetails user) {
-        return buildToken(user);
-    }
-
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String userName = extractUsername(token);
-        return userName.equals(userDetails.getUsername()) && !isTokenExpired(token);
+    public boolean isTokenValid(String token) {
+        try {
+            return !isTokenExpired(token);
+        } catch (JwtException e) {
+            log.debug("JWT validation failed: {}", e.getMessage());
+            return false;
+        }
     }
 
     private boolean isTokenExpired(String token) {
@@ -45,17 +49,28 @@ public class JwtService {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+    public TheraflowUser extractUserDetails(String token) {
+        Claims claims = extractAllClaims(token);
+        String email = claims.getSubject();
+        UUID accountId = extractAccountId(claims);
+
+        return new TheraflowUser(accountId, email, null);
     }
 
-    private String buildToken(
-            UserDetails userDetails
+    private UUID extractAccountId(Claims claims) {
+        String accountId = claims.get("accountId", String.class);
+
+        return accountId!=null ? UUID.fromString(accountId):null;
+    }
+
+    public String generateToken(
+            TheraflowUser userDetails
     ) {
         Instant now = clock.instant();
-        Instant expiration = now.plus(Duration.ofMillis(jwtExpiration));
+        Instant expiration = now.plus(Duration.ofMinutes(jwtExpiration));
         return Jwts
                 .builder()
+                .claim("accountId", userDetails.getAccountId().toString())
                 .subject(userDetails.getUsername())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiration))

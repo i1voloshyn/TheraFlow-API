@@ -3,6 +3,7 @@ package com.theraflow.security;
 import com.theraflow.account.AccountRepository;
 import com.theraflow.account.model.Account;
 import com.theraflow.exception.EntityNotFoundException;
+import com.theraflow.security.model.TheraflowUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
