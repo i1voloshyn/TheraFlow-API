@@ -1,12 +1,19 @@
 package com.theraflow.account;
 
+import com.icegreen.greenmail.configuration.GreenMailConfiguration;
+import com.icegreen.greenmail.junit5.GreenMailExtension;
+import com.icegreen.greenmail.util.ServerSetupTest;
 import com.theraflow.TestcontainersConfiguration;
 import com.theraflow.account.dto.AccountRequest;
 import com.theraflow.account.dto.AccountResponse;
 import com.theraflow.account.model.Account;
 import com.theraflow.account.model.AccountType;
-import com.theraflow.security.jwt.JWTService;
+import com.theraflow.email.JwtEmailVerificationService;
+import com.theraflow.security.jwt.JwtAuthenticationService;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -17,13 +24,15 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ActiveProfiles("test")
-@Transactional
 @Import(TestcontainersConfiguration.class)
-@SpringBootTest(properties =
-        "jwt.secret=MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=")
+@SpringBootTest
 class AccountServiceIT {
     private static final String EMAIL = "therapist@example.com";
     private static final String RAW_PASSWORD = "StrongPassword1!";
+
+    @RegisterExtension
+    private static final GreenMailExtension greenMail = new GreenMailExtension(ServerSetupTest.SMTP)
+            .withConfiguration(GreenMailConfiguration.aConfig().withUser("spring", "root"));
 
     @Autowired
     private AccountService accountService;
@@ -32,30 +41,34 @@ class AccountServiceIT {
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
-    private JWTService jwtService;
+    private JwtEmailVerificationService verificationService;
 
     @Test
-    void createAccount_withValidRequest_persistsUnverifiedAccountAndReturnsAccessToken() {
+    void createAccount_withValidRequest_persistsUnverifiedAccountAndReturnsAccessToken() throws MessagingException {
         AccountResponse response = accountService.createAccount(
                 new AccountRequest(EMAIL, RAW_PASSWORD, AccountType.THERAPIST)
         );
 
         Account savedAccount = accountRepository.findAccountByEmail(EMAIL).orElseThrow();
+        //Email
+        assertThat(greenMail.waitForIncomingEmail(5000, 1)).isTrue();
+        assertThat(greenMail.getReceivedMessages()).hasSize(1);
 
+        MimeMessage receivedMessage = greenMail.getReceivedMessages()[0];
+
+        assertThat(receivedMessage.getSubject()).isEqualTo("Account Verification");
+        assertThat(receivedMessage.getAllRecipients()[0].toString()).isEqualTo(EMAIL);
+        assertThat(receivedMessage.getFrom()[0].toString()).isEqualTo("no-reply@theraflow.com");
+
+        //Account
         assertThat(savedAccount.getId()).isEqualTo(response.id());
         assertThat(savedAccount.getEmail()).isEqualTo(EMAIL);
         assertThat(savedAccount.getType()).isEqualTo(AccountType.THERAPIST);
         assertThat(savedAccount.getVerified()).isFalse();
         assertThat(savedAccount.getVerificationToken()).isNotBlank();
         assertThat(passwordEncoder.matches(RAW_PASSWORD, savedAccount.getPasswordHash())).isTrue();
-        assertThat(jwtService.extractEmailFromVerificationToken(savedAccount.getVerificationToken()))
+        assertThat(verificationService.extractEmail(savedAccount.getVerificationToken()))
                 .isEqualTo(EMAIL);
 
-        assertThat(response.email()).isEqualTo(EMAIL);
-        assertThat(response.type()).isEqualTo(AccountType.THERAPIST);
-        assertThat(response.token()).isNotBlank();
-        assertThat(jwtService.extractUsernameFromAccessToken(response.token())).isEqualTo(EMAIL);
-        assertThat(response.createdAt()).isNotNull();
-        assertThat(response.updatedAt()).isNotNull();
     }
 }

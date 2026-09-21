@@ -23,6 +23,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Account account = accountRepository.findAccountByEmail(username)
                 .orElseThrow(() -> new EntityNotFoundException("Account", username));
-        return new TheraflowUser(account.getId(),account.getEmail(), account.getPasswordHash());
+        return new TheraflowUser(
+                account.getId(),
+                account.getEmail(),
+                account.getPasswordHash(),
+                Boolean.TRUE.equals(account.getVerified())
+        );
     }
 }

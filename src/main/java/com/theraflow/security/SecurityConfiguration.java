@@ -1,8 +1,8 @@
 package com.theraflow.security;
 
 import com.theraflow.security.jwt.JwtAuthenticationFilter;
+import com.theraflow.security.model.TheraflowUser;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -41,8 +41,8 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(req ->
                         req.requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/v1/accounts").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/api/v1/accounts/verify-email").permitAll()
-                                .anyRequest().authenticated()
+                                .requestMatchers("/api/v1/therapist/**").authenticated()
+                                .anyRequest().hasAuthority(TheraflowUser.VERIFIED_AUTHORITY)
                 )
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(customAuthenticationEntryPoint)

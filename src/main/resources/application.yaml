@@ -43,3 +43,7 @@ app:
       refresh-token:
         expiration: 7 #7 days
 
+      email:
+        secret-key: ${JWT_EMAIL_SECRET}
+        expiration: 60 #60 minutes
+

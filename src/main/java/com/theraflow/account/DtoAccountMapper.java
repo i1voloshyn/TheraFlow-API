@@ -21,11 +21,10 @@ public class DtoAccountMapper {
                 .build();
     }
 
-    public AccountResponse toResponse(Account account, String token) {
+    public AccountResponse toResponse(Account account) {
         return new AccountResponse(
                 account.getId(),
                 account.getEmail(),
-                token,
                 account.getType(),
                 account.getCreatedAt(),
                 account.getUpdatedAt()

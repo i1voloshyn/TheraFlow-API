@@ -1,22 +1,26 @@
 package com.theraflow.account;
 
-import com.theraflow.TestSecurityConfiguration;
 import com.theraflow.account.dto.AccountRequest;
 import com.theraflow.account.dto.AccountResponse;
+import com.theraflow.account.dto.AuthenticationResponse;
 import com.theraflow.account.model.AccountType;
 import com.theraflow.exception.CurrentPasswordMismatchException;
+import com.theraflow.security.AuthenticationService;
+import com.theraflow.security.CustomAuthenticationEntryPoint;
+import com.theraflow.security.SecurityConfiguration;
 import com.theraflow.security.jwt.JwtAuthenticationFilter;
+import com.theraflow.security.jwt.JwtAuthenticationService;
+import com.theraflow.security.model.LoginRequest;
 import com.theraflow.security.model.TheraflowUser;
 import com.theraflow.therapist.dto.ChangePasswordRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -34,19 +38,14 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(
-        value = AccountController.class,
-        excludeFilters = @ComponentScan.Filter(
-                type = FilterType.ASSIGNABLE_TYPE,
-                classes = JwtAuthenticationFilter.class
-        )
-)
-@Import(TestSecurityConfiguration.class)
+@WebMvcTest(AccountController.class)
+@Import({SecurityConfiguration.class, CustomAuthenticationEntryPoint.class, JwtAuthenticationFilter.class})
 class AccountControllerTest {
 
     @Autowired
@@ -57,6 +56,15 @@ class AccountControllerTest {
 
     @MockitoBean
     private AccountService accountService;
+
+    @MockitoBean
+    private AuthenticationService authenticationService;
+
+    @MockitoBean
+    private JwtAuthenticationService jwtAuthenticationService;
+
+    @MockitoBean
+    private UserDetailsService userDetailsService;
 
     @DisplayName("Should create and return new account for valid input data")
     @Test
@@ -72,13 +80,13 @@ class AccountControllerTest {
         AccountResponse expected = new AccountResponse(
                 accId,
                 email,
-                token,
                 type,
                 createdAt,
                 updatedAt
         );
 
         when(accountService.createAccount(request)).thenReturn(expected);
+        when(authenticationService.authenticate(new LoginRequest(email, password))).thenReturn(token);
 
         MvcResult result = mockMvc.perform(post("/api/v1/accounts")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -94,9 +102,9 @@ class AccountControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andReturn();
-        AccountResponse actual = objectMapper.readValue(result.getResponse().getContentAsString(), AccountResponse.class);
+        AuthenticationResponse actual = objectMapper.readValue(result.getResponse().getContentAsString(), AuthenticationResponse.class);
 
-        assertThat(actual).isEqualTo(expected);
+        assertThat(actual.account()).isEqualTo(expected);
         verify(accountService).createAccount(request);
     }
 
@@ -121,6 +129,36 @@ class AccountControllerTest {
         verifyNoInteractions(accountService);
     }
 
+    @DisplayName("Should reject email verification for an unauthenticated account")
+    @Test
+    void emailVerification_shouldRequireAuthentication() throws Exception {
+        mockMvc.perform(get("/api/v1/accounts/verify-email")
+                        .param("token", "verification-token"))
+                .andExpect(status().isUnauthorized());
+
+        verifyNoInteractions(accountService);
+    }
+
+    @DisplayName("Should verify email for an authenticated account")
+    @Test
+    void emailVerification_shouldVerifyEmail_whenAccountIsAuthenticated() throws Exception {
+        String token = "verification-token";
+        TheraflowUser user = new TheraflowUser(
+                UUID.randomUUID(),
+                "valid-email@gmail.com",
+                "password_hash",
+                true
+        );
+
+        mockMvc.perform(get("/api/v1/accounts/verify-email")
+                        .param("token", token)
+                        .with(user(user)))
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));
+
+        verify(accountService).verifyEmail(token);
+    }
+
     @DisplayName("Should change password and return no content status when given a valid request")
     @Test
     void changePassword_successTest() throws Exception {
@@ -128,7 +166,8 @@ class AccountControllerTest {
         TheraflowUser user = new TheraflowUser(
                 accountId,
                 "valid-email",
-                "password_hash"
+                "password_hash",
+                true
         );
 
         String oldPassword = "old-password";
@@ -159,7 +198,8 @@ class AccountControllerTest {
         TheraflowUser user = new TheraflowUser(
                 accountId,
                 "valid-email",
-                "password_hash"
+                "password_hash",
+                true
         );
 
         String oldPassword = "wrong-password";

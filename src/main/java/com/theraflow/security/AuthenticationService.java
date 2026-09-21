@@ -1,6 +1,6 @@
 package com.theraflow.security;
 
-import com.theraflow.security.jwt.JwtService;
+import com.theraflow.security.jwt.JwtAuthenticationService;
 import com.theraflow.security.model.LoginRequest;
 import com.theraflow.security.model.TheraflowUser;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
-    private final JwtService jwtService;
+    private final JwtAuthenticationService jwtService;
 
     public String authenticate(LoginRequest request) {
         Authentication auth = authenticationManager.authenticate(
