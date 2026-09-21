@@ -2,8 +2,10 @@ package com.theraflow.security;
 
 import com.theraflow.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -16,6 +18,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @RequiredArgsConstructor
@@ -23,19 +26,28 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfiguration {
 
-    private final JwtAuthenticationFilter jwtFilter;
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   AuthenticationManager authenticationManager) {
+                                                   AuthenticationManager authenticationManager,
+                                                   JwtAuthenticationFilter jwtAuthenticationFilter,
+                                                   CustomAuthenticationEntryPoint customAuthenticationEntryPoint) {
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req ->
-                        req.requestMatchers("/api/v1/auth/**").permitAll()
+                        req.requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/v1/accounts").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/v1/accounts/verify-email").permitAll()
                                 .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(new AccessDeniedHandlerImpl()))
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .authenticationManager(authenticationManager);
 
         return http.build();

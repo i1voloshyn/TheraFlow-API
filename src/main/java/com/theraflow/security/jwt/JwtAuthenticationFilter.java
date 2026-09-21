@@ -12,13 +12,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
 @RequiredArgsConstructor
-@Service
+@Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String BEARER_PREFIX = "Bearer ";
 
@@ -33,6 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
+
         try {
             authenticate(request);
         } catch (Exception e) {
@@ -46,6 +47,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
         String token = extractJwtToken(request);
+        if (token==null) {
+            return;
+        }
+
         if (!jwtService.isTokenValid(token)) {
             return;
         }

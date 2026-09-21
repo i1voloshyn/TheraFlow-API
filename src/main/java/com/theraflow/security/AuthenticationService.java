@@ -29,7 +29,7 @@ public class AuthenticationService {
     }
 
     private TheraflowUser extractUser(Authentication auth) {
-        if (auth instanceof TheraflowUser user) {
+        if (auth.getPrincipal() instanceof TheraflowUser user) {
             return user;
         } else {
             throw new AuthenticationServiceException("Unexpected authentication principal type");

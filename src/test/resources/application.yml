@@ -14,3 +14,4 @@ spring:
 
 app:
   mail-from: no-reply@theraflow.com
+

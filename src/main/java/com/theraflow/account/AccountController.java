@@ -2,6 +2,7 @@ package com.theraflow.account;
 
 import com.theraflow.account.dto.AccountRequest;
 import com.theraflow.account.dto.AccountResponse;
+import com.theraflow.security.model.TheraflowUser;
 import com.theraflow.therapist.dto.ChangePasswordRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -41,9 +42,9 @@ public class AccountController {
     @PatchMapping("/change-password")
     public ResponseEntity<Void> changePassword(
             @Valid @RequestBody ChangePasswordRequest request,
-            @AuthenticationPrincipal UUID accountId
+            @AuthenticationPrincipal TheraflowUser user
     ) {
-        accountService.changePassword(request, accountId);
+        accountService.changePassword(request, user.getAccountId());
 
         return ResponseEntity.noContent().build();
     }
