@@ -19,3 +19,4 @@ out
 .env
 application-local.properties
 *.class
+.github

@@ -6,6 +6,7 @@ import com.icegreen.greenmail.util.ServerSetupTest;
 import com.theraflow.TestcontainersConfiguration;
 import com.theraflow.account.dto.AccountRequest;
 import com.theraflow.account.dto.AccountResponse;
+import com.theraflow.account.dto.AuthenticationResponse;
 import com.theraflow.exception.model.ErrorCode;
 import com.theraflow.exception.model.ErrorResponse;
 import com.theraflow.account.model.AccountType;
@@ -27,8 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ActiveProfiles("test")
 @SpringBootTest(
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = "jwt.secret=MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE="
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
 @AutoConfigureRestTestClient
 @Import(TestcontainersConfiguration.class)
@@ -57,13 +57,15 @@ public class AccountControllerIT {
         String email = "test@email.com";
         AccountRequest request = new AccountRequest(email, VALID_PASSWORD, AccountType.THERAPIST);
 
-        AccountResponse response = register(request)
+        AuthenticationResponse response = register(request)
                 .expectStatus().isCreated()
-                .returnResult(AccountResponse.class).getResponseBody();
+                .returnResult(AuthenticationResponse.class).getResponseBody();
+
+        AccountResponse actual = response.account();
 
         assertThat(response).isNotNull();
-        assertThat(response.id()).isNotNull();
-        assertThat(response.email()).isEqualTo(email);
+        assertThat(actual.id()).isNotNull();
+        assertThat(actual.email()).isEqualTo(email);
 
         assertThat(greenMail.waitForIncomingEmail(5000, 1)).isTrue();
         assertThat(greenMail.getReceivedMessages()).hasSize(1);
