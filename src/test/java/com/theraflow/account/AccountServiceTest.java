@@ -1,8 +1,8 @@
 package com.theraflow.account;
 
 import com.theraflow.account.dto.AccountRequest;
-import com.theraflow.security.AuthenticationService;
-import com.theraflow.security.jwt.JwtAuthenticationService;
+import com.theraflow.authentication.AuthenticationService;
+import com.theraflow.application.JwtAuthTokenService;
 import com.theraflow.therapist.dto.ChangePasswordRequest;
 import com.theraflow.exception.CurrentPasswordMismatchException;
 import com.theraflow.exception.PasswordPolicyException;
@@ -48,7 +48,7 @@ class AccountServiceTest {
     @Mock
     private AuthenticationService authService;
     @Mock
-    private JwtAuthenticationService jwtService;
+    private JwtAuthTokenService jwtService;
     @Mock
     private ApplicationEventPublisher eventPublisher;
     @Spy

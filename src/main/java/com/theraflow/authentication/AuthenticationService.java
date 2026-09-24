@@ -1,9 +1,9 @@
-package com.theraflow.security;
+package com.theraflow.authentication;
 
-import com.theraflow.security.jwt.JwtAuthenticationService;
-import com.theraflow.security.model.LoginRequest;
+import com.theraflow.application.JwtAuthTokenService;
+import com.theraflow.authentication.model.LoginRequest;
 import com.theraflow.security.model.TheraflowUser;
-import com.theraflow.security.model.Token;
+import com.theraflow.authentication.model.Token;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
-    private final JwtAuthenticationService jwtService;
+    private final JwtAuthTokenService jwtService;
 
     public Token authenticate(LoginRequest request) {
         Authentication auth = authenticationManager.authenticate(

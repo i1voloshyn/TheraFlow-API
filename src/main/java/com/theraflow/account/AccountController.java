@@ -1,12 +1,8 @@
 package com.theraflow.account;
 
 import com.theraflow.account.dto.AccountRequest;
-import com.theraflow.account.dto.AccountResponse;
 import com.theraflow.account.dto.SignUpResponse;
-import com.theraflow.security.AuthenticationService;
-import com.theraflow.security.model.LoginRequest;
 import com.theraflow.security.model.TheraflowUser;
-import com.theraflow.security.model.Token;
 import com.theraflow.therapist.dto.ChangePasswordRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -30,18 +26,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class AccountController {
 
     private final AccountService accountService;
-    private final AuthenticationService authenticationService;
+
 
     @PostMapping
     public ResponseEntity<SignUpResponse> signUp(
             @Valid @RequestBody AccountRequest request
     ) {
-        AccountResponse response = accountService.createAccount(request);
-        Token token = authenticationService
-                .authenticate(new LoginRequest(request.email(), request.rawPassword()));
+        SignUpResponse response = accountService.createAccount(request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new SignUpResponse(response, token));
+                .body(response);
     }
 
     @PatchMapping("/change-password")

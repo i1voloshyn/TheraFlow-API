@@ -55,13 +55,14 @@ CREATE TABLE therapists
     CONSTRAINT uq_therapists_license_number UNIQUE (license_number)
 );
 
-CREATE TABLE refresh_token
+CREATE TABLE refresh_tokens
 (
-    id         UUID               DEFAULT gen_random_uuid(),
-    account_id UUID      NOT NULL,
-    token_hash TEXT      NOT NULL,
-    is_revoked BOOLEAN   NOT NULL DEFAULT false,
-    expires_at TIMESTAMP NOT NULL,
+    id         UUID                              DEFAULT gen_random_uuid(),
+    account_id UUID                     NOT NULL,
+    token_hash TEXT                     NOT NULL,
+    is_revoked BOOLEAN                  NOT NULL DEFAULT false,
+    expires_at TIMESTAMP                NOT NULL DEFAULT (CURRENT_TIMESTAMP + INTERVAL '30 days'),
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT pk_refresh_token PRIMARY KEY (id),
     CONSTRAINT fk_refresh_token_account FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE CASCADE

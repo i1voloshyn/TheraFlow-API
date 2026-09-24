@@ -1,5 +1,6 @@
 package com.theraflow.account.model;
 
+import com.theraflow.application.refreshToken.RefreshToken;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -7,6 +8,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
@@ -22,6 +24,8 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -57,4 +61,13 @@ public class Account {
     @Column(name = "updated_at", insertable = false)
     @Nullable
     private Instant updatedAt;
+
+    @OneToMany(mappedBy = "account")
+    @Builder.Default
+    private Set<RefreshToken> refreshTokens = new HashSet<>();
+
+    public void setRefreshToken(RefreshToken token) {
+        refreshTokens.add(token);
+        token.setAccount(this);
+    }
 }

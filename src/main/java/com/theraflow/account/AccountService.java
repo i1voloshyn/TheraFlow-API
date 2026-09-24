@@ -2,12 +2,17 @@ package com.theraflow.account;
 
 import com.theraflow.account.dto.AccountRequest;
 import com.theraflow.account.dto.AccountResponse;
+import com.theraflow.account.dto.SignUpResponse;
 import com.theraflow.account.model.Account;
-import com.theraflow.email.JwtEmailVerificationService;
+import com.theraflow.application.JwtEmailVerificationTokenService;
+import com.theraflow.application.refreshToken.RefreshToken;
 import com.theraflow.event.VerificationEmailRequested;
 import com.theraflow.exception.CurrentPasswordMismatchException;
 import com.theraflow.exception.EntityNotFoundException;
 import com.theraflow.exception.PasswordPolicyException;
+import com.theraflow.authentication.AuthenticationService;
+import com.theraflow.authentication.model.LoginRequest;
+import com.theraflow.authentication.model.Token;
 import com.theraflow.therapist.dto.ChangePasswordRequest;
 import com.theraflow.util.PasswordValidator;
 import com.theraflow.util.PasswordViolation;
@@ -25,33 +30,51 @@ import java.util.UUID;
 public class AccountService {
     private static final String ACCOUNT = "Account";
 
+    private final AuthenticationService authenticationService;
     private final AccountRepository accountRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordValidator passwordValidator;
     private final DtoAccountMapper mapper;
-    private final JwtEmailVerificationService emailVerificationService;
+    private final JwtEmailVerificationTokenService emailVerificationService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public AccountResponse createAccount(AccountRequest request) {
+    public SignUpResponse createAccount(AccountRequest request) {
         passwordValidator.validate(request.rawPassword());
 
-        Account accountToSave = mapper.toAccount(
+        Account account = mapper.toAccount(
                 request.email(),
                 passwordEncoder.encode(request.rawPassword()),
                 request.type()
         );
-        accountRepository.save(accountToSave);
+       Account saved =  accountRepository.save(account);
 
-        String verificationToken = emailVerificationService.generateToken(request.email());
+        Token token = authenticationService.authenticate(new LoginRequest(request.email(), request.rawPassword()));
+
+        // create refresh token hash
+        RefreshToken refreshToken = RefreshToken.builder()
+                .account(account)
+                .tokenHash(token.refresh())
+                .build();
+
+        saved.setRefreshToken(refreshToken); // do not save token
+
+      //  publishSentEmailEvent(account);
+
+        AccountResponse accountResponse = mapper.toResponse(saved);
+
+        return new SignUpResponse(accountResponse, token);
+    }
+
+    private void publishSentEmailEvent(Account account) {
+        String verificationToken = emailVerificationService.generateToken(account.getEmail());
         eventPublisher.publishEvent(new VerificationEmailRequested(
-                accountToSave.getId(),
-                accountToSave.getEmail(),
+                account.getId(),
+                account.getEmail(),
                 verificationToken
         ));
-
-        return mapper.toResponse(accountToSave);
     }
+
 
     @Transactional
     public void changePassword(ChangePasswordRequest request, UUID id) {

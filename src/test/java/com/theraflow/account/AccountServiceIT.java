@@ -8,7 +8,7 @@ import com.theraflow.account.dto.AccountRequest;
 import com.theraflow.account.dto.AccountResponse;
 import com.theraflow.account.model.Account;
 import com.theraflow.account.model.AccountType;
-import com.theraflow.email.JwtEmailVerificationService;
+import com.theraflow.application.JwtEmailVerificationTokenService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.Test;
@@ -41,7 +41,7 @@ class AccountServiceIT {
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
-    private JwtEmailVerificationService verificationService;
+    private JwtEmailVerificationTokenService verificationService;
 
     @Test
     void createAccount_withValidRequest_persistsUnverifiedAccountAndReturnsAccessToken() throws MessagingException {

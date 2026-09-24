@@ -38,12 +38,14 @@ app:
 
   security:
     jwt:
-      secret-key: ${JWT_SECRET}
-      expiration: 5 #5 minute
-      refresh-token:
-        expiration: 7 #7 days
+      access:
+        secret: ${JWT_ACCESS_SECRET}
+        expiration: 5m # 5 minute
+      refresh:
+        secret: ${JWT_REFRESH_SECRET}
+        expiration: 30d  # 30 days
 
       email:
-        secret-key: ${JWT_EMAIL_SECRET}
-        expiration: 60 #60 minutes
+        secret: ${JWT_EMAIL_SECRET}
+        expiration: 1h # 60 minutes
 

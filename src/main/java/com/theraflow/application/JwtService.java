@@ -1,35 +1,45 @@
-package com.theraflow.jwt;
+package com.theraflow.application;
 
 import com.theraflow.exception.JwtValidationException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.security.Key;
 import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 import java.util.function.Function;
 
 @Slf4j
-public abstract class AbstractJwtService<T> {
-    protected final Clock clock = Clock.systemUTC();
+@Component
+public class JwtService {
+    private final Clock clock = Clock.systemUTC();
 
-    protected abstract String getSecretKey();
-
-    protected Key getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(getSecretKey());
-        return Keys.hmacShaKeyFor(keyBytes);
+    public JwtBuilder buildToken(
+            Duration jwtExpiration,
+            String secret
+    ) {
+        Instant now = clock.instant();
+        Instant expiration = now.plus(jwtExpiration);
+        return Jwts.builder()
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(expiration))
+                .signWith(getSignInKey(secret));
     }
 
-    protected final Claims extractAllClaims(String token) {
+    public Claims extractAllClaims(String token, String secret) {
         try {
             return Jwts.parser()
-                    .verifyWith((SecretKey) getSignInKey())
+                    .verifyWith((SecretKey) getSignInKey(secret))
                     .clock(() -> Date.from(clock.instant()))
                     .build()
                     .parseSignedClaims(token)
@@ -43,8 +53,14 @@ public abstract class AbstractJwtService<T> {
         }
     }
 
-    protected final <V> V extractClaim(String token, Function<Claims, V> claimResolver) {
-        Claims claims = extractAllClaims(token);
+    public <V> V extractClaim(String token, String secret, Function<Claims, V> claimResolver) {
+        Claims claims = extractAllClaims(token, secret);
         return claimResolver.apply(claims);
     }
+
+    private Key getSignInKey(String secret) {
+        byte[] keyBytes = Decoders.BASE64.decode(secret);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
+
 }

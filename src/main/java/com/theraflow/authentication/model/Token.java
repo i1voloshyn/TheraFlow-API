@@ -1,4 +1,4 @@
-package com.theraflow.security.model;
+package com.theraflow.authentication.model;
 
 public record Token(
         String access,

@@ -5,14 +5,14 @@ import com.theraflow.account.dto.AccountResponse;
 import com.theraflow.account.dto.SignUpResponse;
 import com.theraflow.account.model.AccountType;
 import com.theraflow.exception.CurrentPasswordMismatchException;
-import com.theraflow.security.AuthenticationService;
+import com.theraflow.authentication.AuthenticationService;
 import com.theraflow.security.CustomAuthenticationEntryPoint;
 import com.theraflow.security.SecurityConfiguration;
-import com.theraflow.security.jwt.JwtAuthenticationFilter;
-import com.theraflow.security.jwt.JwtAuthenticationService;
-import com.theraflow.security.model.LoginRequest;
+import com.theraflow.security.JwtAuthenticationFilter;
+import com.theraflow.application.JwtAuthTokenService;
+import com.theraflow.authentication.model.LoginRequest;
 import com.theraflow.security.model.TheraflowUser;
-import com.theraflow.security.model.Token;
+import com.theraflow.authentication.model.Token;
 import com.theraflow.therapist.dto.ChangePasswordRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -62,7 +62,7 @@ class AccountControllerTest {
     private AuthenticationService authenticationService;
 
     @MockitoBean
-    private JwtAuthenticationService jwtAuthenticationService;
+    private JwtAuthTokenService jwtAuthenticationService;
 
     @MockitoBean
     private UserDetailsService userDetailsService;

@@ -1,6 +1,5 @@
 package com.theraflow.security;
 
-import com.theraflow.security.jwt.JwtAuthenticationFilter;
 import com.theraflow.security.model.TheraflowUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

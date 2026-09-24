@@ -1,7 +1,7 @@
-package com.theraflow.security;
+package com.theraflow.authentication;
 
-import com.theraflow.security.model.LoginRequest;
-import com.theraflow.security.model.Token;
+import com.theraflow.authentication.model.LoginRequest;
+import com.theraflow.authentication.model.Token;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

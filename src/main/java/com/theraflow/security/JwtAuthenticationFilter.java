@@ -1,7 +1,7 @@
-package com.theraflow.security.jwt;
+package com.theraflow.security;
 
+import com.theraflow.application.JwtAuthTokenService;
 import com.theraflow.exception.JwtExpiredException;
-import com.theraflow.security.CustomAuthenticationEntryPoint;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -25,7 +25,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String BEARER_PREFIX = "Bearer ";
 
-    private final JwtAuthenticationService jwtService;
+    private final JwtAuthTokenService jwtService;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     @Override
