@@ -73,7 +73,7 @@ public class EmailService {
     private String generateVerificationUrl(String token) {
         return UriComponentsBuilder.fromPath(baseUrl)
                 .path(VERIFY_EMAIL_PATH)
-                .queryParam("token", token)
+                .queryParam("access", token)
                 .toUriString();
     }
 }

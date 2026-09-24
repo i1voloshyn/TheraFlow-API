@@ -45,9 +45,19 @@ public class JwtAuthenticationService extends AbstractJwtService<TheraflowUser> 
         return secretKey;
     }
 
-    public String generateToken(
+    public String generateAccessToken(
             TheraflowUser userDetails
     ) {
+        return buildToken(userDetails, jwtExpiration);
+    }
+
+    public String generateRefreshToken(
+            TheraflowUser userDetails
+    ) {
+        return buildToken(userDetails, jwtRefreshExpiration);
+    }
+
+    private String buildToken(TheraflowUser userDetails, long jwtExpiration){
         Instant now = clock.instant();
         Instant expiration = now.plus(Duration.ofMinutes(jwtExpiration));
         return Jwts

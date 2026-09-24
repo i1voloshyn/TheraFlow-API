@@ -1,7 +1,7 @@
 package com.theraflow.security;
 
 import com.theraflow.security.model.LoginRequest;
-import com.theraflow.security.model.AuthenticationResponse;
+import com.theraflow.security.model.Token;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,12 +16,12 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
 
     @PostMapping("/login")
-    public ResponseEntity<AuthenticationResponse> login(
+    public ResponseEntity<Token> login(
             @RequestBody LoginRequest request
     ) {
-        String token = authenticationService.authenticate(request);
+        Token token = authenticationService.authenticate(request);
 
-        return ResponseEntity.ok(new AuthenticationResponse(token));
+        return ResponseEntity.ok(token);
     }
 
 

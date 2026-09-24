@@ -6,7 +6,7 @@ import com.icegreen.greenmail.util.ServerSetupTest;
 import com.theraflow.TestcontainersConfiguration;
 import com.theraflow.account.dto.AccountRequest;
 import com.theraflow.account.dto.AccountResponse;
-import com.theraflow.account.dto.AuthenticationResponse;
+import com.theraflow.account.dto.SignUpResponse;
 import com.theraflow.exception.model.ErrorCode;
 import com.theraflow.exception.model.ErrorResponse;
 import com.theraflow.account.model.AccountType;
@@ -53,13 +53,13 @@ public class AccountControllerIT {
 
     @Test
     @DisplayName("Register valid request should persist account and send verification email")
-    void register_success() throws MessagingException {
+    void signUp_success() throws MessagingException {
         String email = "test@email.com";
         AccountRequest request = new AccountRequest(email, VALID_PASSWORD, AccountType.THERAPIST);
 
-        AuthenticationResponse response = register(request)
+        SignUpResponse response = signUp(request)
                 .expectStatus().isCreated()
-                .returnResult(AuthenticationResponse.class).getResponseBody();
+                .returnResult(SignUpResponse.class).getResponseBody();
 
         AccountResponse actual = response.account();
 
@@ -79,18 +79,18 @@ public class AccountControllerIT {
 
     @Test
     @DisplayName("Register duplicate email should return conflict without sending another email")
-    void register_duplicateEmail_returnsConflictAndDoesNotSendSecondEmail() {
+    void signUp_duplicateEmail_returnsConflictAndDoesNotSendSecondEmail() {
         AccountRequest request = new AccountRequest(
                 "duplicate@email.com",
                 VALID_PASSWORD,
                 AccountType.THERAPIST
         );
 
-        register(request)
+        signUp(request)
                 .expectStatus().isCreated();
         assertThat(greenMail.waitForIncomingEmail(5000, 1)).isTrue();
 
-        register(request)
+        signUp(request)
                 .expectStatus().isEqualTo(HttpStatus.CONFLICT)
                 .expectBody(ErrorResponse.class)
                 .value(error -> {
@@ -102,7 +102,7 @@ public class AccountControllerIT {
         assertThat(greenMail.getReceivedMessages()).hasSize(1);
     }
 
-    private RestTestClient.ResponseSpec register(AccountRequest request) {
+    private RestTestClient.ResponseSpec signUp(AccountRequest request) {
         return restTestClient.post()
                 .uri(ACCOUNTS_PATH)
                 .body(request)

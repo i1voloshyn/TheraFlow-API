@@ -3,6 +3,7 @@ package com.theraflow.security;
 import com.theraflow.security.jwt.JwtAuthenticationService;
 import com.theraflow.security.model.LoginRequest;
 import com.theraflow.security.model.TheraflowUser;
+import com.theraflow.security.model.Token;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -16,7 +17,7 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final JwtAuthenticationService jwtService;
 
-    public String authenticate(LoginRequest request) {
+    public Token authenticate(LoginRequest request) {
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.email(),
@@ -25,7 +26,10 @@ public class AuthenticationService {
         );
 
         TheraflowUser user = extractUser(auth);
-        return jwtService.generateToken(user);
+        String accessToken = jwtService.generateAccessToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+
+        return new Token(accessToken, refreshToken);
     }
 
     private TheraflowUser extractUser(Authentication auth) {

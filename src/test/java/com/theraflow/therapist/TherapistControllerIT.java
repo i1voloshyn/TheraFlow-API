@@ -77,7 +77,7 @@ class TherapistControllerIT {
 //                .exchange()
 //                .returnResult(LoginResponse.class)
 //                .getResponseBody()
-//                .token();
+//                .access();
 //
 //    }
 

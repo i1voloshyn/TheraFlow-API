@@ -35,7 +35,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AccountServiceTest {
     private static final String EMAIL = "therapist@example.com";
-    private static final String VERIFICATION_TOKEN = "email-verification-token";
+    private static final String VERIFICATION_TOKEN = "email-verification-access";
     private static final UUID ACCOUNT_ID =
             UUID.fromString("cc837471-3c4b-4d77-a825-c4c1cf3a1dc5");
 

@@ -9,7 +9,6 @@ import com.theraflow.account.dto.AccountResponse;
 import com.theraflow.account.model.Account;
 import com.theraflow.account.model.AccountType;
 import com.theraflow.email.JwtEmailVerificationService;
-import com.theraflow.security.jwt.JwtAuthenticationService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.Test;
@@ -19,9 +18,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
+// Maybe for this test it will be more reasonable to create integration test Controller->Service->DataLayer
 
 @ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
@@ -64,11 +64,7 @@ class AccountServiceIT {
         assertThat(savedAccount.getId()).isEqualTo(response.id());
         assertThat(savedAccount.getEmail()).isEqualTo(EMAIL);
         assertThat(savedAccount.getType()).isEqualTo(AccountType.THERAPIST);
-        assertThat(savedAccount.getVerified()).isFalse();
-        assertThat(savedAccount.getVerificationToken()).isNotBlank();
+        assertThat(savedAccount.getEmailVerified()).isFalse();
         assertThat(passwordEncoder.matches(RAW_PASSWORD, savedAccount.getPasswordHash())).isTrue();
-        assertThat(verificationService.extractEmail(savedAccount.getVerificationToken()))
-                .isEqualTo(EMAIL);
-
     }
 }

@@ -8,14 +8,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class DtoAccountMapper {
 
-    public Account toAccount(String email, String passwordHash, AccountType type, String token) {
+    public Account toAccount(String email, String passwordHash, AccountType type) {
         return Account.builder()
                 .id(null)
                 .email(email)
                 .passwordHash(passwordHash)
                 .type(type)
-                .verificationToken(token)
-                .verified(false)
+                .emailVerified(false)
                 .createdAt(null)
                 .updatedAt(null)
                 .build();

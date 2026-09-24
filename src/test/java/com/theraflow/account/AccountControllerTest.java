@@ -2,7 +2,7 @@ package com.theraflow.account;
 
 import com.theraflow.account.dto.AccountRequest;
 import com.theraflow.account.dto.AccountResponse;
-import com.theraflow.account.dto.AuthenticationResponse;
+import com.theraflow.account.dto.SignUpResponse;
 import com.theraflow.account.model.AccountType;
 import com.theraflow.exception.CurrentPasswordMismatchException;
 import com.theraflow.security.AuthenticationService;
@@ -12,6 +12,7 @@ import com.theraflow.security.jwt.JwtAuthenticationFilter;
 import com.theraflow.security.jwt.JwtAuthenticationService;
 import com.theraflow.security.model.LoginRequest;
 import com.theraflow.security.model.TheraflowUser;
+import com.theraflow.security.model.Token;
 import com.theraflow.therapist.dto.ChangePasswordRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -68,11 +69,12 @@ class AccountControllerTest {
 
     @DisplayName("Should create and return new account for valid input data")
     @Test
-    void register_shouldReturnNewAccount() throws Exception {
+    void signUp_shouldReturnNewAccount() throws Exception {
         String email = "valid_email@gmail.com";
         String password = "123StringPassword!";
         AccountType type = AccountType.THERAPIST;
-        String token = "some-valid-token";
+        Token token = new Token("some-valid-access", "some-valid-refresh");
+
         AccountRequest request = new AccountRequest(email, password, type);
         UUID accId = UUID.fromString("cc837471-3c4b-4d77-a825-c4c1cf3a1dc5");
         Instant createdAt = Instant.parse("2026-08-18T10:00:00Z");
@@ -102,7 +104,7 @@ class AccountControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andReturn();
-        AuthenticationResponse actual = objectMapper.readValue(result.getResponse().getContentAsString(), AuthenticationResponse.class);
+        SignUpResponse actual = objectMapper.readValue(result.getResponse().getContentAsString(), SignUpResponse.class);
 
         assertThat(actual.account()).isEqualTo(expected);
         verify(accountService).createAccount(request);
@@ -110,7 +112,7 @@ class AccountControllerTest {
 
     @DisplayName("Should return bad request when registration email is invalid")
     @Test
-    void register_shouldReturnBadRequest_whenEmailIsInvalid() throws Exception {
+    void signUp_shouldReturnBadRequest_whenEmailIsInvalid() throws Exception {
         mockMvc.perform(post("/api/v1/accounts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
@@ -133,7 +135,7 @@ class AccountControllerTest {
     @Test
     void emailVerification_shouldRequireAuthentication() throws Exception {
         mockMvc.perform(get("/api/v1/accounts/verify-email")
-                        .param("token", "verification-token"))
+                        .param("access", "verification-access"))
                 .andExpect(status().isUnauthorized());
 
         verifyNoInteractions(accountService);
@@ -142,7 +144,7 @@ class AccountControllerTest {
     @DisplayName("Should verify email for an authenticated account")
     @Test
     void emailVerification_shouldVerifyEmail_whenAccountIsAuthenticated() throws Exception {
-        String token = "verification-token";
+        String token = "verification-access";
         TheraflowUser user = new TheraflowUser(
                 UUID.randomUUID(),
                 "valid-email@gmail.com",
@@ -209,7 +211,7 @@ class AccountControllerTest {
         doThrow(new CurrentPasswordMismatchException()).when(accountService).changePassword(req, accountId);
 
         mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/accounts/change-password")
-                        .header("Authorization", "valid-token")
+                        .header("Authorization", "valid-access")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {

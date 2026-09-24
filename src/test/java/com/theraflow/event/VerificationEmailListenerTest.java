@@ -19,7 +19,7 @@ class VerificationEmailListenerTest {
     private static final UUID ACCOUNT_ID =
             UUID.fromString("cc837471-3c4b-4d77-a825-c4c1cf3a1dc5");
     private static final String EMAIL = "therapist@example.com";
-    private static final String TOKEN = "email-verification-token";
+    private static final String TOKEN = "email-verification-access";
 
     @Mock
     private EmailService emailService;

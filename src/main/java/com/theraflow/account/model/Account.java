@@ -46,13 +46,9 @@ public class Account {
     @Column(name = "account_type", nullable = false)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private AccountType type;
-    @Column(name = "verification_token")
-    @Setter
-    @Nullable
-    private String verificationToken;
     @Nullable
     @Setter
-    private Boolean verified;
+    private Boolean emailVerified;
     @Generated(event = EventType.INSERT)
     @Column(name = "created_at", insertable = false)
     @Nullable

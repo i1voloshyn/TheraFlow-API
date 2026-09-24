@@ -21,8 +21,6 @@ public abstract class AbstractJwtService<T> {
 
     protected abstract String getSecretKey();
 
-    public abstract String generateToken(T subject);
-
     protected Key getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(getSecretKey());
         return Keys.hmacShaKeyFor(keyBytes);
@@ -37,11 +35,11 @@ public abstract class AbstractJwtService<T> {
                     .parseSignedClaims(token)
                     .getPayload();
         } catch (ExpiredJwtException e) {
-            log.info("Token signature is valid, but the token has expired.");
+            log.info("Token signature is valid, but the access has expired.");
             throw e;
         } catch (JwtException | IllegalArgumentException e) {
             log.warn("Token is completely invalid, structural failure, or tampered signature.");
-            throw new JwtValidationException("Invalid token status", e);
+            throw new JwtValidationException("Invalid access status", e);
         }
     }
 

@@ -35,15 +35,15 @@ public class AccountService {
     @Transactional
     public AccountResponse createAccount(AccountRequest request) {
         passwordValidator.validate(request.rawPassword());
-        String verificationToken = emailVerificationService.generateToken(request.email());
 
         Account accountToSave = mapper.toAccount(
                 request.email(),
                 passwordEncoder.encode(request.rawPassword()),
-                request.type(),
-                verificationToken
+                request.type()
         );
         accountRepository.save(accountToSave);
+
+        String verificationToken = emailVerificationService.generateToken(request.email());
         eventPublisher.publishEvent(new VerificationEmailRequested(
                 accountToSave.getId(),
                 accountToSave.getEmail(),
@@ -75,7 +75,6 @@ public class AccountService {
         Account account = accountRepository.findAccountByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException(ACCOUNT, email));
 
-        account.setVerificationToken(null);
-        account.setVerified(true);
+        account.setEmailVerified(true);
     }
 }

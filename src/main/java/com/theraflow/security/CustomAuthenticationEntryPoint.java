@@ -9,8 +9,6 @@ import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 @Component
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
@@ -23,20 +21,25 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         response.setContentType("application/json");
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
-        // Build your custom JSON payload
-        Map<String, Object> errorDetails = new HashMap<>();
-        errorDetails.put("status", 401);
-        errorDetails.put("error", "Unauthorized");
+        ErrorDetails details = getErrorDetails(request, authException);
 
-        if (authException instanceof JwtExpiredException e) {
-            errorDetails.put("code", "TOKEN_EXPIRED");
-            errorDetails.put("message", e.getMessage());
-        } else errorDetails.put("message", authException.getMessage());
-
-        errorDetails.put("path", request.getServletPath());
-
-        // Write the JSON to the response
         ObjectMapper mapper = new ObjectMapper();
-        mapper.writeValue(response.getOutputStream(), errorDetails);
+        mapper.writeValue(response.getOutputStream(), details);
+    }
+
+    private ErrorDetails getErrorDetails(HttpServletRequest request, AuthenticationException exception) {
+        if (exception instanceof JwtExpiredException e) {
+            return new ErrorDetails(403, "TOKEN_EXPIRED", e.getMessage(), request.getServletPath());
+        } else {
+            return new ErrorDetails(401, "UNAUTHORIZED", exception.getMessage(), request.getServletPath());
+        }
+    }
+
+    private record ErrorDetails(
+            int status,
+            String errorCode,
+            String message,
+            String path
+    ) {
     }
 }

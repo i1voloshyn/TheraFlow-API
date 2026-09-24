@@ -29,7 +29,6 @@ public class JwtEmailVerificationService extends AbstractJwtService<String> {
         return secretKey;
     }
 
-    @Override
     public String generateToken(String subject) {
         Instant now = clock.instant();
         Instant expiration = now.plus(Duration.ofMinutes(jwtExpiration));

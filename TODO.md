@@ -3,44 +3,104 @@
 ## Account
 
 ### Registration
+- [x] Create Therapist account
+- [x] Validate registration data
+- [x] Hash password before persistence
+- [x] Prevent duplicate email registration
+- [x] Send email verification
+  - → [Email Verification](#email-verification)
+- [x] Verify email address
+  - → [Email Verification](#email-verification)
+- [ ] Restrict protected features for unverified accounts
+  - Registered but unverified therapist → can log in
+  - Unverified therapist → cannot create/manage patients
 
-- Implement create Therapist account ✅
-- Validate registration data ✅
-- Hash password before persistence ✅
-- Prevent duplicate email registration ✅
-- Send email verification after registration ✅
-- Verify email address ✅
-- Restrict protected features for unverified accounts:Registered but unverified therapist → can log in, but cannot
-  create/manage patients.
 
 ### Authentication
 
-- Login ✅
-- Logout / token invalidation strategy ✅
-- JWT authentication ✅
-- Refresh access token
-- Handle expired access token ✅
-- Handle invalid/revoked refresh token
+#### Login
+- [x] Authenticate credentials
+- [ ] Generate authentication tokens
+  - → [Authentication Token Flow](#authentication-token-flow)
+
+#### Logout
+- [ ] Define token invalidation strategy
+- [ ] Invalidate refresh token
+  - → [Refresh Token Flow](#refresh-token-flow)
+
+#### Refresh Access Token
+- [ ] Validate refresh token
+  - → [Refresh Token](#refresh-token)
+- [ ] Rotate refresh token
+  - → [Refresh Token](#refresh-token)
+- [ ] Generate new access token
+  - → [Authentication Token Flow](#authentication-token-flow)
+
 
 ### Password
 
-- Change password ✅
-- Forgot password
-- Reset password using email link/token
-- Require current password when changing password
-- Invalidate existing sessions/tokens after password reset
+#### Change Password
+- [ ] Verify current password
+  - → [Password Flow](#password-flow)
+- [ ] Hash new password
+  - → [Password Flow](#password-flow)
+- [ ] Update password
 
-### Email
 
-- Resend verification email
-- Verification token expiration
-- Prevent reuse of verification token
-- Handle already verified account
+#### Forgot Password
+- [ ] Request password reset
+  - → [Password Reset Flow](#password-reset-flow)
+- [ ] Send password reset email
+  - → [Email Verification](#email-verification)
+  
 
-### Account lifecycle
+#### Reset Password
+- [ ] Validate reset token
+  - → [Password Reset](#password-reset)
+- [ ] Set new password
+  - → [Password Flow](#password-flow)
 
-- Get current account (`/me`)
-- Update account information
-- Deactivate account
-- Reactivate account (if applicable)
-- Permanently delete account (if required)
+
+---
+
+# Reusable Flows
+
+## Authentication Token Flow
+
+Used by:
+- Registration
+- Login
+- Refresh Access Token
+
+
+### Access Token
+- [x] Generate access token
+- [x] Validate access token
+- [x] Extract account identity from access token
+
+### Refresh Token
+- [ ] Generate refresh token
+- [ ] Hash refresh token
+- [ ] Persist refresh token
+- [ ] Find refresh token
+- [ ] Validate refresh token
+- [ ] Revoke refresh token
+- [ ] Rotate refresh token
+
+
+### Email Verification
+- [x] Generate verification token
+- [x] Send verification email
+- [x] Validate verification token
+- [x] Mark account as verified
+
+### Password
+- [ ] Change password
+- [ ] Forgot password
+- [ ] Reset password
+
+### Password Reset
+- [ ] Generate reset token
+- [ ] Send reset email
+- [ ] Validate reset token
+- [ ] Invalidate reset token
