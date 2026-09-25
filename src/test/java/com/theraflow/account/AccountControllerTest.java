@@ -12,7 +12,7 @@ import com.theraflow.security.JwtAuthenticationFilter;
 import com.theraflow.application.JwtAuthTokenService;
 import com.theraflow.authentication.model.LoginRequest;
 import com.theraflow.security.model.TheraflowUser;
-import com.theraflow.authentication.model.Token;
+import com.theraflow.authentication.model.AuthTokenPair;
 import com.theraflow.therapist.dto.ChangePasswordRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -73,7 +73,7 @@ class AccountControllerTest {
         String email = "valid_email@gmail.com";
         String password = "123StringPassword!";
         AccountType type = AccountType.THERAPIST;
-        Token token = new Token("some-valid-access", "some-valid-refresh");
+        AuthTokenPair tokens = new AuthTokenPair("some-valid-access", "some-valid-refresh");
 
         AccountRequest request = new AccountRequest(email, password, type);
         UUID accId = UUID.fromString("cc837471-3c4b-4d77-a825-c4c1cf3a1dc5");
@@ -87,8 +87,10 @@ class AccountControllerTest {
                 updatedAt
         );
 
-        when(accountService.createAccount(request)).thenReturn(expected);
-        when(authenticationService.authenticate(new LoginRequest(email, password))).thenReturn(token);
+        SignUpResponse response = new SignUpResponse(expected, tokens);
+
+        when(accountService.signUp(request)).thenReturn(response);
+        when(authenticationService.authenticate(new LoginRequest(email, password))).thenReturn(tokens);
 
         MvcResult result = mockMvc.perform(post("/api/v1/accounts")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -107,7 +109,7 @@ class AccountControllerTest {
         SignUpResponse actual = objectMapper.readValue(result.getResponse().getContentAsString(), SignUpResponse.class);
 
         assertThat(actual.account()).isEqualTo(expected);
-        verify(accountService).createAccount(request);
+        verify(accountService).signUp(request);
     }
 
     @DisplayName("Should return bad request when registration email is invalid")

@@ -57,7 +57,7 @@ class AccountServiceTest {
     private AccountService accountService;
 
     @Test
-    void createAccount_withInvalidPassword_doesNotCreateAccount() {
+    void createAccount_withInvalidPassword_doesNotSignUp() {
         String rawPassword = "WeakPassword";
         AccountRequest request = new AccountRequest(
                 "therapist@example.com",
@@ -71,7 +71,7 @@ class AccountServiceTest {
                 .when(passwordValidator)
                 .validate(rawPassword);
 
-        assertThatThrownBy(() -> accountService.createAccount(request))
+        assertThatThrownBy(() -> accountService.signUp(request))
                 .isSameAs(expectedException);
 
         verify(passwordValidator).validate(rawPassword);

@@ -1,18 +1,17 @@
 package com.theraflow.account;
 
 import com.theraflow.account.dto.AccountRequest;
-import com.theraflow.account.dto.AccountResponse;
 import com.theraflow.account.dto.SignUpResponse;
 import com.theraflow.account.model.Account;
 import com.theraflow.application.JwtEmailVerificationTokenService;
 import com.theraflow.application.refreshToken.RefreshToken;
+import com.theraflow.authentication.AuthenticationService;
+import com.theraflow.authentication.model.AuthTokenPair;
+import com.theraflow.authentication.model.LoginRequest;
 import com.theraflow.event.VerificationEmailRequested;
 import com.theraflow.exception.CurrentPasswordMismatchException;
 import com.theraflow.exception.EntityNotFoundException;
 import com.theraflow.exception.PasswordPolicyException;
-import com.theraflow.authentication.AuthenticationService;
-import com.theraflow.authentication.model.LoginRequest;
-import com.theraflow.authentication.model.Token;
 import com.theraflow.therapist.dto.ChangePasswordRequest;
 import com.theraflow.util.PasswordValidator;
 import com.theraflow.util.PasswordViolation;
@@ -21,6 +20,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.DigestUtils;
 
 import java.util.Set;
 import java.util.UUID;
@@ -39,31 +39,32 @@ public class AccountService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public SignUpResponse createAccount(AccountRequest request) {
+    public SignUpResponse signUp(AccountRequest request) {
         passwordValidator.validate(request.rawPassword());
+        Account account = save(request);
 
+        AuthTokenPair tokens = authenticationService.authenticate(
+                new LoginRequest(request.email(), request.rawPassword()));
+
+        RefreshToken refreshToken = new RefreshToken(hashRefreshToken(tokens.refresh()));
+        account.setRefreshToken(refreshToken);
+
+        publishSentEmailEvent(account);
+
+        return new SignUpResponse(mapper.toResponse(account), tokens);
+    }
+
+    private String hashRefreshToken(String token) {
+        return DigestUtils.md5DigestAsHex(token.getBytes());
+    }
+
+    private Account save(AccountRequest request) {
         Account account = mapper.toAccount(
                 request.email(),
                 passwordEncoder.encode(request.rawPassword()),
                 request.type()
         );
-       Account saved =  accountRepository.save(account);
-
-        Token token = authenticationService.authenticate(new LoginRequest(request.email(), request.rawPassword()));
-
-        // create refresh token hash
-        RefreshToken refreshToken = RefreshToken.builder()
-                .account(account)
-                .tokenHash(token.refresh())
-                .build();
-
-        saved.setRefreshToken(refreshToken); // do not save token
-
-      //  publishSentEmailEvent(account);
-
-        AccountResponse accountResponse = mapper.toResponse(saved);
-
-        return new SignUpResponse(accountResponse, token);
+        return accountRepository.save(account);
     }
 
     private void publishSentEmailEvent(Account account) {
@@ -74,7 +75,6 @@ public class AccountService {
                 verificationToken
         ));
     }
-
 
     @Transactional
     public void changePassword(ChangePasswordRequest request, UUID id) {

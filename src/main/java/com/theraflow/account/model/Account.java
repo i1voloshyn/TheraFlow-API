@@ -1,6 +1,7 @@
 package com.theraflow.account.model;
 
 import com.theraflow.application.refreshToken.RefreshToken;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -62,7 +63,7 @@ public class Account {
     @Nullable
     private Instant updatedAt;
 
-    @OneToMany(mappedBy = "account")
+    @OneToMany(mappedBy = "account", cascade = CascadeType.PERSIST)
     @Builder.Default
     private Set<RefreshToken> refreshTokens = new HashSet<>();
 

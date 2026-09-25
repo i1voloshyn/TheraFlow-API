@@ -6,6 +6,7 @@ import com.icegreen.greenmail.util.ServerSetupTest;
 import com.theraflow.TestcontainersConfiguration;
 import com.theraflow.account.dto.AccountRequest;
 import com.theraflow.account.dto.AccountResponse;
+import com.theraflow.account.dto.SignUpResponse;
 import com.theraflow.account.model.Account;
 import com.theraflow.account.model.AccountType;
 import com.theraflow.application.JwtEmailVerificationTokenService;
@@ -40,12 +41,10 @@ class AccountServiceIT {
     private AccountRepository accountRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
-    @Autowired
-    private JwtEmailVerificationTokenService verificationService;
 
     @Test
-    void createAccount_withValidRequest_persistsUnverifiedAccountAndReturnsAccessToken() throws MessagingException {
-        AccountResponse response = accountService.createAccount(
+    void signUpAndReturnsAccessToken() throws MessagingException {
+        SignUpResponse response = accountService.signUp(
                 new AccountRequest(EMAIL, RAW_PASSWORD, AccountType.THERAPIST)
         );
 
@@ -61,7 +60,7 @@ class AccountServiceIT {
         assertThat(receivedMessage.getFrom()[0].toString()).isEqualTo("no-reply@theraflow.com");
 
         //Account
-        assertThat(savedAccount.getId()).isEqualTo(response.id());
+        assertThat(savedAccount.getId()).isEqualTo(response.account().id());
         assertThat(savedAccount.getEmail()).isEqualTo(EMAIL);
         assertThat(savedAccount.getType()).isEqualTo(AccountType.THERAPIST);
         assertThat(savedAccount.getEmailVerified()).isFalse();

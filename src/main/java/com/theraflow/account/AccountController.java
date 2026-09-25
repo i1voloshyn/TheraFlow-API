@@ -32,7 +32,7 @@ public class AccountController {
     public ResponseEntity<SignUpResponse> signUp(
             @Valid @RequestBody AccountRequest request
     ) {
-        SignUpResponse response = accountService.createAccount(request);
+        SignUpResponse response = accountService.signUp(request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(response);

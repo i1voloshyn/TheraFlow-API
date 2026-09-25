@@ -2,6 +2,7 @@ package com.theraflow.application;
 
 import com.theraflow.security.model.TheraflowUser;
 import io.jsonwebtoken.Claims;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -11,14 +12,11 @@ import java.util.UUID;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class JwtAuthTokenService {
     private static final String VERIFIED_CLAIM = "verified";
 
     private final JwtService jwtService;
-
-    public JwtAuthTokenService(JwtService jwtService) {
-        this.jwtService = jwtService;
-    }
 
     @Value("${app.security.jwt.access.secret}")
     private String accessSecret;
