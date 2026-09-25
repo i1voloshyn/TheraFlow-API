@@ -29,7 +29,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 
     private ErrorDetails getErrorDetails(HttpServletRequest request, AuthenticationException exception) {
         if (exception instanceof JwtExpiredException e) {
-            return new ErrorDetails(403, "TOKEN_EXPIRED", e.getMessage(), request.getServletPath());
+            return new ErrorDetails(401, "TOKEN_EXPIRED", e.getMessage(), request.getServletPath());
         } else {
             return new ErrorDetails(401, "UNAUTHORIZED", exception.getMessage(), request.getServletPath());
         }

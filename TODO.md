@@ -79,9 +79,9 @@ Used by:
 - [x] Extract account identity from access token
 
 ### Refresh Token
-- [ ] Generate refresh token
-- [ ] Hash refresh token
-- [ ] Persist refresh token
+- [x] Generate refresh token
+- [x] Hash refresh token
+- [x] Persist refresh token
 - [ ] Find refresh token
 - [ ] Validate refresh token
 - [ ] Revoke refresh token
