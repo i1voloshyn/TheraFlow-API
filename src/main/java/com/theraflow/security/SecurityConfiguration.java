@@ -40,7 +40,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(req ->
                         req.requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/v1/accounts").permitAll()
-                                .requestMatchers("/api/v1/therapist/**").authenticated()
+                                .requestMatchers("/api/v1/therapist/**").authenticated()  // Guardian is able to create Therapist Account which is not correct 
                                 .anyRequest().hasAuthority(TheraflowUser.VERIFIED_AUTHORITY)
                 )
                 .exceptionHandling(exceptions -> exceptions

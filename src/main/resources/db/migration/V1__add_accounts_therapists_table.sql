@@ -59,9 +59,9 @@ CREATE TABLE refresh_tokens
 (
     id         UUID                              DEFAULT gen_random_uuid(),
     account_id UUID                     NOT NULL,
-    token_hash TEXT                     NOT NULL,
+    token_hash TEXT                     NOT NULL UNIQUE,
     is_revoked BOOLEAN                  NOT NULL DEFAULT false,
-    expires_at TIMESTAMP                NOT NULL DEFAULT (CURRENT_TIMESTAMP + INTERVAL '30 days'),
+    expires_at TIMESTAMP                NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT pk_refresh_token PRIMARY KEY (id),

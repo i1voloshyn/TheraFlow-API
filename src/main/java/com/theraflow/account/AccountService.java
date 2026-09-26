@@ -20,7 +20,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.DigestUtils;
 
 import java.util.Set;
 import java.util.UUID;
@@ -45,17 +44,12 @@ public class AccountService {
 
         AuthTokenPair tokens = authenticationService.authenticate(
                 new LoginRequest(request.email(), request.rawPassword()));
-
-        RefreshToken refreshToken = new RefreshToken(hashRefreshToken(tokens.refresh()));
+        RefreshToken refreshToken = authenticationService.buildRefreshToken(tokens.refresh());
         account.setRefreshToken(refreshToken);
 
         publishSentEmailEvent(account);
 
         return new SignUpResponse(mapper.toResponse(account), tokens);
-    }
-
-    private String hashRefreshToken(String token) {
-        return DigestUtils.md5DigestAsHex(token.getBytes());
     }
 
     private Account save(AccountRequest request) {

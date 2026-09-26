@@ -24,7 +24,7 @@ import java.util.function.Function;
 public class JwtService {
     private final Clock clock = Clock.systemUTC();
 
-    public JwtBuilder buildToken(
+    public JwtBuilder tokenBuilder(
             Duration jwtExpiration,
             String secret
     ) {

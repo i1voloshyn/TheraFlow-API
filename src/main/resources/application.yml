@@ -42,7 +42,6 @@ app:
         secret: ${JWT_ACCESS_SECRET}
         expiration: 5m # 5 minute
       refresh:
-        secret: ${JWT_REFRESH_SECRET}
         expiration: 30d  # 30 days
 
       email:

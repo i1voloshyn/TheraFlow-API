@@ -32,12 +32,12 @@ public class RefreshToken {
     private Account account;
     private String tokenHash;
     private Boolean isRevoked = false;
-    @Generated(event = EventType.INSERT)
     private Instant expiresAt;
     @Generated(event = EventType.INSERT)
     private Instant createdAt;
 
-    public RefreshToken(String tokenHash) {
+    public RefreshToken(String tokenHash, Instant expiresAt) {
         this.tokenHash = tokenHash;
+        this.expiresAt = expiresAt;
     }
 }

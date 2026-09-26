@@ -24,7 +24,7 @@ public class JwtEmailVerificationTokenService {
 
     public String generateToken(String subject) {
         return jwtService
-                .buildToken(expiration, secret)
+                .tokenBuilder(expiration, secret)
                 .subject(subject)
                 .compact();
     }

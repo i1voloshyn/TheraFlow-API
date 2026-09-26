@@ -19,10 +19,17 @@ public class AuthenticationController {
     public ResponseEntity<AuthTokenPair> login(
             @RequestBody LoginRequest request
     ) {
-        AuthTokenPair token = authenticationService.authenticate(request);
+        AuthTokenPair tokens = authenticationService.authenticate(request);
 
-        return ResponseEntity.ok(token);
+        return ResponseEntity.ok(tokens);
     }
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthTokenPair> refreshToken(
+            @RequestBody String refreshToken
+    ) {
+        AuthTokenPair tokens = authenticationService.refreshToken(refreshToken);
 
+        return ResponseEntity.ok(tokens);
+    }
 
 }
