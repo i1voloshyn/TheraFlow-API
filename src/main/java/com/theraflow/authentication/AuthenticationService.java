@@ -16,7 +16,6 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.codec.Hex;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,7 +36,6 @@ public class AuthenticationService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final AccountRepository accountRepository;
     private final JwtAuthTokenService jwtService;
-    private final PasswordEncoder passwordEncoder;
 
     @Value("${app.security.jwt.refresh.expiration}")
     private Duration refreshTokenExpiration;
@@ -67,7 +65,7 @@ public class AuthenticationService {
                 expiration);
     }
 
-    private String hashRefreshToken(String token) {
+    String hashRefreshToken(String token) {
         try {
             MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
             byte[] bytes = messageDigest.digest(token.getBytes(StandardCharsets.UTF_8));
@@ -86,6 +84,10 @@ public class AuthenticationService {
         if (oldRefreshToken.getExpiresAt().isBefore(clock.instant())) {
             throw new AuthenticationServiceException("Refresh token has expired");  //todo own exception
         }
+//todo using revoked token should throw an exception and probably log the user out of all sessions
+        if (oldRefreshToken.getIsRevoked()) {
+            throw new AuthenticationServiceException("Refresh token is revoked"); //todo own exception
+        }
 
         UUID accountId = Objects.requireNonNull(oldRefreshToken.getAccount().getId());
         Account account = accountRepository.findById(accountId)
@@ -102,9 +104,7 @@ public class AuthenticationService {
         account.setRefreshToken(newRefreshToken);
 
         return new AuthTokenPair(newAccessToken, newRawRefreshToken);
-
     }
-
 
     private TheraflowUser extractUser(Authentication auth) {
         if (auth.getPrincipal() instanceof TheraflowUser user) {
