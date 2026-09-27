@@ -45,7 +45,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     .commence(
                             request,
                             response,
-                            new JwtExpiredException("The provided access access has expired.", e)
+                            new JwtExpiredException("The provided access token has expired.", e)
                     );
             return;
         }

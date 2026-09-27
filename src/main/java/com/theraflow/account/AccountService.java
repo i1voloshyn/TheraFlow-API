@@ -47,7 +47,8 @@ public class AccountService {
         RefreshToken refreshToken = authenticationService.buildRefreshToken(tokens.refresh());
         account.setRefreshToken(refreshToken);
 
-        publishSentEmailEvent(account);
+        //todo Uncomment it later. Keep it commented just for postman testing for not sending emails
+      //  publishSentEmailEvent(account);
 
         return new SignUpResponse(mapper.toResponse(account), tokens);
     }

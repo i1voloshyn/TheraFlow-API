@@ -1,10 +1,13 @@
 package com.theraflow.authentication;
 
+import com.theraflow.account.AccountRepository;
+import com.theraflow.account.model.Account;
 import com.theraflow.application.JwtAuthTokenService;
 import com.theraflow.application.refreshToken.RefreshToken;
 import com.theraflow.application.refreshToken.RefreshTokenRepository;
 import com.theraflow.authentication.model.AuthTokenPair;
 import com.theraflow.authentication.model.LoginRequest;
+import com.theraflow.exception.EntityNotFoundException;
 import com.theraflow.security.model.TheraflowUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,26 +18,29 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.codec.Hex;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AuthenticationService {
     private final Clock clock = Clock.systemUTC();
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final AccountRepository accountRepository;
     private final JwtAuthTokenService jwtService;
     private final PasswordEncoder passwordEncoder;
 
     @Value("${app.security.jwt.refresh.expiration}")
-    private Duration jwtExpiration;
+    private Duration refreshTokenExpiration;
 
     public AuthTokenPair authenticate(LoginRequest request) {
         Authentication auth = authenticationManager.authenticate(
@@ -51,21 +57,51 @@ public class AuthenticationService {
         return new AuthTokenPair(accessToken, rawRefreshToken);
     }
 
-    public RefreshToken buildRefreshToken(String token) {
-        String tokenHash = hashRefreshToken(token);
+    public RefreshToken buildRefreshToken(String rawToken) {
+        String tokenHash = hashRefreshToken(rawToken);
 
         Instant now = clock.instant();
-        Instant expiration = now.plus(jwtExpiration);
+        Instant expiration = now.plus(refreshTokenExpiration);
 
         return new RefreshToken(tokenHash,
                 expiration);
     }
 
     private String hashRefreshToken(String token) {
-        return passwordEncoder.encode(token);
+        try {
+            MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+            byte[] bytes = messageDigest.digest(token.getBytes(StandardCharsets.UTF_8));
+            return new String(Hex.encode(bytes));
+        } catch (Exception e) {
+            throw new RuntimeException("Error hashing refresh token", e);
+        }
     }
 
-    public AuthTokenPair refreshTokens(String refreshToken) {
+    @Transactional
+    public AuthTokenPair rotateTokens(String rawRefreshToken) {
+        String tokenHash = hashRefreshToken(rawRefreshToken);
+        RefreshToken oldRefreshToken = refreshTokenRepository.findByTokenHash(tokenHash)
+                .orElseThrow(() -> new AuthenticationServiceException("Invalid refresh token")); //todo own exception
+
+        if (oldRefreshToken.getExpiresAt().isBefore(clock.instant())) {
+            throw new AuthenticationServiceException("Refresh token has expired");  //todo own exception
+        }
+
+        UUID accountId = Objects.requireNonNull(oldRefreshToken.getAccount().getId());
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new EntityNotFoundException("Account", accountId)); //todo own
+
+        TheraflowUser user = new TheraflowUser(account.getId(), account.getEmail(), null, account.getEmailVerified());
+
+        String newAccessToken = jwtService.generateAccessToken(user);
+        String newRawRefreshToken = UUID.randomUUID().toString();
+        RefreshToken newRefreshToken = buildRefreshToken(newRawRefreshToken);
+
+        oldRefreshToken.setIsRevoked(true);
+
+        account.setRefreshToken(newRefreshToken);
+
+        return new AuthTokenPair(newAccessToken, newRawRefreshToken);
 
     }
 
