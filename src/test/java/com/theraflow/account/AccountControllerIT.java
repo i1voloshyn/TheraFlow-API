@@ -95,7 +95,7 @@ public class AccountControllerIT {
                 .expectBody(ErrorResponse.class)
                 .value(error -> {
                     assertThat(error.status()).isEqualTo(HttpStatus.CONFLICT.value());
-                    assertThat(error.errorCode()).isEqualTo(ErrorCode.RESOURCE_ALREADY_EXISTS);
+                    assertThat(error.errorCode()).isEqualTo(ErrorCode.RESOURCE_CONFLICT);
                 });
 
         assertThat(accountRepository.count()).isOne();

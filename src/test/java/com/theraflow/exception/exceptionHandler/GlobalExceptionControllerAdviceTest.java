@@ -38,6 +38,6 @@ class GlobalExceptionControllerAdviceTest {
 
         assertThat(error).isNotNull();
         assertThat(error.title()).isEqualTo("Incorrect old password");
-        assertThat(error.errorCode()).isEqualTo(ErrorCode.PASSWORD_MISMATCH);
+        assertThat(error.errorCode()).isEqualTo(ErrorCode.PASSWORD_INCORRECT);
     }
 }

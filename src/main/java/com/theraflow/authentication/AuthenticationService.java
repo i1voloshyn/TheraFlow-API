@@ -8,6 +8,8 @@ import com.theraflow.application.refreshToken.RefreshTokenRepository;
 import com.theraflow.authentication.model.AuthTokenPair;
 import com.theraflow.authentication.model.LoginRequest;
 import com.theraflow.exception.EntityNotFoundException;
+import com.theraflow.exception.TheraflowApiException;
+import com.theraflow.exception.model.ErrorCode;
 import com.theraflow.security.model.TheraflowUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -81,12 +83,12 @@ public class AuthenticationService {
         RefreshToken oldRefreshToken = refreshTokenRepository.findByTokenHash(tokenHash)
                 .orElseThrow(() -> new AuthenticationServiceException("Invalid refresh token")); //todo own exception
 
+        if (oldRefreshToken.getIsRevoked()) {
+            throw new TheraflowApiException(ErrorCode.REFRESH_TOKEN_REVOKED);
+        }
+
         if (oldRefreshToken.getExpiresAt().isBefore(clock.instant())) {
             throw new AuthenticationServiceException("Refresh token has expired");  //todo own exception
-        }
-//todo using revoked token should throw an exception and probably log the user out of all sessions
-        if (oldRefreshToken.getIsRevoked()) {
-            throw new AuthenticationServiceException("Refresh token is revoked"); //todo own exception
         }
 
         UUID accountId = Objects.requireNonNull(oldRefreshToken.getAccount().getId());

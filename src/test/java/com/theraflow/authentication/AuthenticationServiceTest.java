@@ -4,13 +4,13 @@ import com.theraflow.account.AccountRepository;
 import com.theraflow.application.JwtAuthTokenService;
 import com.theraflow.application.refreshToken.RefreshToken;
 import com.theraflow.application.refreshToken.RefreshTokenRepository;
+import com.theraflow.exception.TheraflowApiException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.AuthenticationServiceException;
 import org.testcontainers.shaded.com.trilead.ssh2.auth.AuthenticationManager;
 
 import java.util.Optional;
@@ -42,7 +42,7 @@ class AuthenticationServiceTest {
 
     }
 
-    @DisplayName("Should thrown an exception when refresh token is revoked")
+    @DisplayName("Should thrown an exception with REFRESH_TOKEN_REVOKED code when refresh token is revoked")
     @Test
     void rotateToken_sc2() {
         String rawToken = "123e4567-e89b-12d3-a456-426614174000";
@@ -53,9 +53,9 @@ class AuthenticationServiceTest {
 
         when(refreshTokenRepository.findByTokenHash(rawTokenHash)).thenReturn(Optional.of(oldRefreshToken));
 
-        assertThatExceptionOfType(AuthenticationServiceException.class)
+        assertThatExceptionOfType(TheraflowApiException.class)
                 .isThrownBy(() -> authenticationService.rotateTokens(rawToken))
-                .withMessage("Refresh token is revoked");
+                .matches(ex -> ex.getErrorCode().name().equals("REFRESH_TOKEN_REVOKED"));
 
         verifyNoInteractions(accountRepository, jwtService, authenticationManager);
     }

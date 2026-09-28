@@ -28,7 +28,7 @@ public class GlobalExceptionControllerAdvice {
     public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(
             HttpServletRequest req) {
 
-        ErrorCode code = ErrorCode.RESOURCE_ALREADY_EXISTS;
+        ErrorCode code = ErrorCode.RESOURCE_CONFLICT;
         ErrorResponse error = errorResponse(req, code, null, null);
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
@@ -46,7 +46,7 @@ public class GlobalExceptionControllerAdvice {
                         violation.getMessageTemplate()
                 ))
                 .toList();
-        ErrorResponse error = errorResponse(req, ErrorCode.WEAK_PASSWORD, null, invalidParams);
+        ErrorResponse error = errorResponse(req, ErrorCode.PASSWORD_WEAK, null, invalidParams);
 
         return ResponseEntity
                 .badRequest()
@@ -56,7 +56,7 @@ public class GlobalExceptionControllerAdvice {
     @ExceptionHandler(CurrentPasswordMismatchException.class)
     public ResponseEntity<ErrorResponse> handleCurrentPasswordMismatchException(
             HttpServletRequest req) {
-        ErrorResponse error = errorResponse(req, ErrorCode.PASSWORD_MISMATCH, null, null);
+        ErrorResponse error = errorResponse(req, ErrorCode.PASSWORD_INCORRECT, null, null);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
@@ -72,7 +72,7 @@ public class GlobalExceptionControllerAdvice {
             EntityNotFoundException ex,
             HttpServletRequest req) {
 
-        ErrorResponse error = errorResponse(req, ErrorCode.ENTITY_NOT_FOUND, ex.getMessage(), null);
+        ErrorResponse error = errorResponse(req, ErrorCode.RESOURCE_NOT_FOUND, ex.getMessage(), null);
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
@@ -89,7 +89,7 @@ public class GlobalExceptionControllerAdvice {
                     return new InvalidParam(fieldName, errorMessage);
                 }).toList();
 
-        ErrorResponse error = errorResponse(req, ErrorCode.INVALID_INPUT, null, errors);
+        ErrorResponse error = errorResponse(req, ErrorCode.VALIDATION_FAILED, null, errors);
 
         return ResponseEntity.badRequest().body(error);
     }
