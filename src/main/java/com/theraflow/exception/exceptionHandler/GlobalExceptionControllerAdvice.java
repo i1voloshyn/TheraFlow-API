@@ -1,8 +1,7 @@
 package com.theraflow.exception.exceptionHandler;
 
-import com.theraflow.exception.CurrentPasswordMismatchException;
-import com.theraflow.exception.EntityNotFoundException;
 import com.theraflow.exception.PasswordPolicyException;
+import com.theraflow.exception.TheraflowApiException;
 import com.theraflow.exception.model.ErrorCode;
 import com.theraflow.exception.model.ErrorResponse;
 import com.theraflow.exception.model.InvalidParam;
@@ -18,21 +17,12 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.net.URI;
+import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 
 @RestControllerAdvice
 public class GlobalExceptionControllerAdvice {
-
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(
-            HttpServletRequest req) {
-
-        ErrorCode code = ErrorCode.RESOURCE_CONFLICT;
-        ErrorResponse error = errorResponse(req, code, null, null);
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
-    }
 
     @ExceptionHandler(PasswordPolicyException.class)
     public ResponseEntity<ErrorResponse> handlePasswordPolicyException(
@@ -53,13 +43,6 @@ public class GlobalExceptionControllerAdvice {
                 .body(error);
     }
 
-    @ExceptionHandler(CurrentPasswordMismatchException.class)
-    public ResponseEntity<ErrorResponse> handleCurrentPasswordMismatchException(
-            HttpServletRequest req) {
-        ErrorResponse error = errorResponse(req, ErrorCode.PASSWORD_INCORRECT, null, null);
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
-    }
-
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErrorResponse> handleBadCredentialsException(
             HttpServletRequest req) {
@@ -67,14 +50,15 @@ public class GlobalExceptionControllerAdvice {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleEntityNotFoundException(
-            EntityNotFoundException ex,
+    @ExceptionHandler(TheraflowApiException.class)
+    public ResponseEntity<ErrorResponse> handleTheraflowApiException(
+            TheraflowApiException ex,
             HttpServletRequest req) {
 
-        ErrorResponse error = errorResponse(req, ErrorCode.RESOURCE_NOT_FOUND, ex.getMessage(), null);
+        ErrorCode code = ex.getErrorCode();
+        ErrorResponse error = errorResponse(req, code, ex.getMessage(), null);
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        return ResponseEntity.status(code.getHttpStatus()).body(error);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -101,9 +85,9 @@ public class GlobalExceptionControllerAdvice {
     ) {
 
         URI path = URI.create(req.getRequestURI());
-        String errorMessage = code.getMessage()==null ? message:code.getMessage();
+        String errorMessage = message!=null ? message:code.getMessage();
 
-        return new ErrorResponse(code.getTitle(), path, code.getHttpStatus().value(), code, errorMessage, params);
+        return new ErrorResponse(code.getHttpStatus().value(), code, code.getTitle(), errorMessage, path, Instant.now(), params);
     }
 
 }

@@ -4,9 +4,10 @@ import com.theraflow.account.dto.AccountRequest;
 import com.theraflow.account.dto.AccountResponse;
 import com.theraflow.account.dto.SignUpResponse;
 import com.theraflow.account.model.AccountType;
-import com.theraflow.exception.CurrentPasswordMismatchException;
 import com.theraflow.authentication.AuthenticationService;
-import com.theraflow.security.CustomAuthenticationEntryPoint;
+import com.theraflow.exception.InvalidCredentialsException;
+import com.theraflow.exception.model.ErrorCode;
+import com.theraflow.security.exception.CustomAuthenticationEntryPoint;
 import com.theraflow.security.SecurityConfiguration;
 import com.theraflow.security.JwtAuthenticationFilter;
 import com.theraflow.application.JwtAuthTokenService;
@@ -127,7 +128,7 @@ class AccountControllerTest {
                                 """)
                 )
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errorCode").value("INVALID_INPUT"))
+                .andExpect(jsonPath("$.errorCode").value("VALIDATION_FAILED"))
                 .andExpect(jsonPath("$.params[0].name").value("email"));
 
         verifyNoInteractions(accountService);
@@ -195,9 +196,10 @@ class AccountControllerTest {
         verify(accountService).changePassword(req, user.getAccountId());
     }
 
-    @DisplayName("Should return 401 and CurrentPasswordMissmatchException for wrong current password")
+    @DisplayName("Should return 401 and InvalidAccessException with PASSWORD_INCORRECT code for wrong current password")
     @Test
-    void changePassword_failureTest() throws Exception {
+    void changePassword_error2() throws Exception {
+        ErrorCode expected = ErrorCode.PASSWORD_INCORRECT;
         UUID accountId = UUID.randomUUID();
         TheraflowUser user = new TheraflowUser(
                 accountId,
@@ -210,7 +212,7 @@ class AccountControllerTest {
         String newPassword = "new-password";
         ChangePasswordRequest req = new ChangePasswordRequest(oldPassword, newPassword);
 
-        doThrow(new CurrentPasswordMismatchException()).when(accountService).changePassword(req, accountId);
+        doThrow(new InvalidCredentialsException(ErrorCode.PASSWORD_INCORRECT)).when(accountService).changePassword(req, accountId);
 
         mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/accounts/change-password")
                         .header("Authorization", "valid-access")
@@ -224,9 +226,7 @@ class AccountControllerTest {
                         .with(user(user))
                 )
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.errorCode").value("PASSWORD_MISMATCH"))
-                .andExpect(jsonPath("$.message")
-                        .value("The old password does not match your current password"));
+                .andExpect(jsonPath("$.errorCode").value(expected.name()));
 
         verify(accountService).changePassword(req, accountId);
     }

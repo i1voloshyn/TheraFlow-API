@@ -27,7 +27,6 @@ public class AccountController {
 
     private final AccountService accountService;
 
-
     @PostMapping
     public ResponseEntity<SignUpResponse> signUp(
             @Valid @RequestBody AccountRequest request

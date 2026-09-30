@@ -1,7 +1,9 @@
 package com.theraflow.security;
 
 import com.theraflow.application.JwtAuthTokenService;
-import com.theraflow.exception.JwtExpiredException;
+import com.theraflow.exception.model.ErrorCode;
+import com.theraflow.security.exception.AccessTokenException;
+import com.theraflow.security.exception.CustomAuthenticationEntryPoint;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -45,7 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     .commence(
                             request,
                             response,
-                            new JwtExpiredException("The provided access token has expired.", e)
+                            new AccessTokenException(ErrorCode.TOKEN_EXPIRED, e)
                     );
             return;
         }

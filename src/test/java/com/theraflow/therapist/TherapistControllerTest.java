@@ -1,6 +1,7 @@
 package com.theraflow.therapist;
 
 
+import com.theraflow.security.model.TheraflowUser;
 import com.theraflow.therapist.dto.TherapistRequest;
 import com.theraflow.therapist.dto.TherapistResponse;
 import org.junit.jupiter.api.DisplayName;
@@ -8,10 +9,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.Mockito.when;
@@ -23,7 +26,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(value = TherapistController.class,
         properties = "jwt.secret=MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=")
-
 public class TherapistControllerTest {
 
     @Autowired
@@ -36,13 +38,12 @@ public class TherapistControllerTest {
     @Test
     void createTherapistProfileSuccess() throws Exception {
         UUID randomAccountId = UUID.fromString("cc837471-3c4b-4d77-a825-c4c1cf3a1dc5");
-//        AccountPrincipal accountPrincipal = new AccountPrincipal(
-//                randomAccountId,
-//                "valid-email",
-//                "password_hash",
-//                List.of(),
-//                true
-//        );
+        TheraflowUser user = new TheraflowUser(
+                randomAccountId,
+                "valid-email",
+                "password_hash",
+                true
+        );
         TherapistRequest request = request();
         TherapistResponse response = response(randomAccountId);
 
@@ -51,7 +52,7 @@ public class TherapistControllerTest {
         mockMvc.perform(post("/api/v1/therapist")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(therapistRequestJson())
-                       // .with(SecurityMockMvcRequestPostProcessors.user(accountPrincipal))
+                        .with(SecurityMockMvcRequestPostProcessors.user(user))
                         .with(csrf())
                 )
                 .andExpect(status().isCreated())

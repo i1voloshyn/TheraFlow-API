@@ -1,14 +1,17 @@
 package com.theraflow.exception;
 
+import com.theraflow.exception.model.ErrorCode;
+
 import java.util.UUID;
 
-public class EntityNotFoundException extends RuntimeException {
-    public EntityNotFoundException(String entity, UUID id) {
-        super(String.format("%s with ID %s not found.", entity, id));
+public class EntityNotFoundException extends TheraflowApiException {
+
+    public EntityNotFoundException(ErrorCode errorCode, UUID id) {
+        super(errorCode, "%s: %s".formatted(errorCode.getTitle(), id));
     }
 
-    public EntityNotFoundException(String entity, String email) {
-        super(String.format("%s with email %s not found.", entity, email));
+    public EntityNotFoundException(ErrorCode errorCode, String identifier) {
+        super(errorCode, "%s: %s".formatted(errorCode.getTitle(), identifier));
     }
 
 }

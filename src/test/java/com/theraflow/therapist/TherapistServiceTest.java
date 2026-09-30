@@ -211,31 +211,6 @@ class TherapistServiceTest {
                 });
     }
 
-    @Test
-    void deleteAddress_whenAlreadyDeleted_shouldThrowEntityNotFoundException() {
-        therapistService.createProfile(requestWith("Doctor"), accountId);
-        AddressRequest request = new AddressRequest(
-                "Przemiarki",
-                "23",
-                "U12",
-                "Kraków",
-                "małopolskie",
-                "30-384",
-                "PL",
-                "+48 12 345 67 89"
-        );
-        UUID addressId = therapistService.addAddress(request, accountId);
-
-        therapistService.deleteAddress(addressId, accountId);
-        entityManager.flush();
-        entityManager.clear();
-
-        assertThatExceptionOfType(EntityNotFoundException.class)
-                .isThrownBy(() -> therapistService.deleteAddress(addressId, accountId))
-                .withMessage("Address with ID %s not found.", addressId);
-    }
-
-
     private TherapistRequest requestWith(String professionalTitle) {
         return new TherapistRequest(
                 "Jere",

@@ -8,8 +8,7 @@ public enum PasswordViolation {
     TOO_LONG("Password cannot exceed 64 characters."),
     MISSING_UPPERCASE_LETTER("Password must contain at least one uppercase letter."),
     MISSING_SPECIAL_CHARACTER("Password must contain at least one special character (e.g., !@#$%^&*)."),
-    MISSING_NUMBER("Password must contain at least one number."),
-    SAME_AS_CURRENT("New password must be different from the current password.");
+    MISSING_NUMBER("Password must contain at least one number.");
 
     private final String messageTemplate;
 

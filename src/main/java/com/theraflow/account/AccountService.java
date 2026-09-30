@@ -9,25 +9,24 @@ import com.theraflow.authentication.AuthenticationService;
 import com.theraflow.authentication.model.AuthTokenPair;
 import com.theraflow.authentication.model.LoginRequest;
 import com.theraflow.event.VerificationEmailRequested;
-import com.theraflow.exception.CurrentPasswordMismatchException;
 import com.theraflow.exception.EntityNotFoundException;
-import com.theraflow.exception.PasswordPolicyException;
+import com.theraflow.exception.InvalidCredentialsException;
+import com.theraflow.exception.ResourceConflictException;
+import com.theraflow.exception.model.ErrorCode;
 import com.theraflow.therapist.dto.ChangePasswordRequest;
 import com.theraflow.util.PasswordValidator;
-import com.theraflow.util.PasswordViolation;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Set;
 import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
 public class AccountService {
-    private static final String ACCOUNT = "Account";
 
     private final AuthenticationService authenticationService;
     private final AccountRepository accountRepository;
@@ -39,6 +38,10 @@ public class AccountService {
 
     @Transactional
     public SignUpResponse signUp(AccountRequest request) {
+        if (accountRepository.existsByEmail(request.email())) {
+            throw new ResourceConflictException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        }
+
         passwordValidator.validate(request.rawPassword());
         Account account = save(request);
 
@@ -47,8 +50,7 @@ public class AccountService {
         RefreshToken refreshToken = authenticationService.buildRefreshToken(tokens.refresh());
         account.setRefreshToken(refreshToken);
 
-        //todo Uncomment it later. Keep it commented just for postman testing for not sending emails
-      //  publishSentEmailEvent(account);
+        publishSentEmailEvent(account);
 
         return new SignUpResponse(mapper.toResponse(account), tokens);
     }
@@ -73,25 +75,31 @@ public class AccountService {
 
     @Transactional
     public void changePassword(ChangePasswordRequest request, UUID id) {
+        passwordValidator.validate(request.newPassword());
+
         Account account = accountRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(ACCOUNT, id));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ACCOUNT_NOT_FOUND, id));
         if (!passwordEncoder.matches(request.oldPassword(), account.getPasswordHash())) {
-            throw new CurrentPasswordMismatchException();
+            throw new InvalidCredentialsException(ErrorCode.PASSWORD_INCORRECT);
         }
         if (passwordEncoder.matches(request.newPassword(), account.getPasswordHash())) {
-            throw new PasswordPolicyException(Set.of(PasswordViolation.SAME_AS_CURRENT));
+            throw new ResourceConflictException(ErrorCode.PASSWORD_SAME_AS_OLD);
         }
 
-        passwordValidator.validate(request.newPassword());
         account.setPasswordHash(passwordEncoder.encode(request.newPassword()));
     }
 
     @Transactional
     public void verifyEmail(String token) {
-        String email = emailVerificationService.extractEmail(token);
+        final String email;
+        try {
+            email = emailVerificationService.extractEmail(token);
+        } catch (ExpiredJwtException e) {
+            throw new InvalidCredentialsException(ErrorCode.EMAIL_VERIFICATION_LINK_EXPIRED);
+        }
 
         Account account = accountRepository.findAccountByEmail(email)
-                .orElseThrow(() -> new EntityNotFoundException(ACCOUNT, email));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ACCOUNT_NOT_FOUND, email));
 
         account.setEmailVerified(true);
     }

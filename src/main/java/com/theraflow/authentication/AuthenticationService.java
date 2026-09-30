@@ -93,7 +93,7 @@ public class AuthenticationService {
 
         UUID accountId = Objects.requireNonNull(oldRefreshToken.getAccount().getId());
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new EntityNotFoundException("Account", accountId)); //todo own
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ACCOUNT_NOT_FOUND, accountId));
 
         TheraflowUser user = new TheraflowUser(account.getId(), account.getEmail(), null, account.getEmailVerified());
 

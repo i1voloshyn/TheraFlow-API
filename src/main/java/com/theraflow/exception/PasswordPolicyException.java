@@ -1,16 +1,17 @@
 package com.theraflow.exception;
 
+import com.theraflow.exception.model.ErrorCode;
 import com.theraflow.util.PasswordViolation;
 import lombok.Getter;
 
 import java.util.Set;
 
 @Getter
-public class PasswordPolicyException extends RuntimeException {
+public class PasswordPolicyException extends TheraflowApiException {
     private final Set<PasswordViolation> violations;
 
-    public PasswordPolicyException(Set<PasswordViolation> violations) {
-        super("Password does not satisfied the password policy");
+    public PasswordPolicyException(ErrorCode errorCode, Set<PasswordViolation> violations) {
+        super(errorCode);
         this.violations = Set.copyOf(violations);
     }
 }

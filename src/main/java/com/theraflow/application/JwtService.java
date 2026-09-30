@@ -1,6 +1,7 @@
 package com.theraflow.application;
 
-import com.theraflow.exception.JwtValidationException;
+import com.theraflow.exception.InvalidCredentialsException;
+import com.theraflow.exception.model.ErrorCode;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtBuilder;
@@ -48,8 +49,8 @@ public class JwtService {
             log.info("Token signature is valid, but the access has expired.");
             throw e;
         } catch (JwtException | IllegalArgumentException e) {
-            log.warn("Token is completely invalid, structural failure, or tampered signature.");
-            throw new JwtValidationException("Invalid access status", e);
+            log.info("Token is completely invalid, structural failure, or tampered signature.");
+            throw new InvalidCredentialsException(ErrorCode.TOKEN_INVALID);
         }
     }
 

@@ -1,6 +1,6 @@
 package com.theraflow.security;
 
-import com.theraflow.security.model.TheraflowUser;
+import com.theraflow.security.exception.CustomAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,8 +40,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(req ->
                         req.requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/v1/accounts").permitAll()
-                                .requestMatchers("/api/v1/therapist/**").authenticated()  // Guardian is able to create Therapist Account which is not correct 
-                                .anyRequest().hasAuthority(TheraflowUser.VERIFIED_AUTHORITY)
+                                .anyRequest().authenticated() // Guardian is able to create Therapist Account which is not correct
                 )
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(customAuthenticationEntryPoint)

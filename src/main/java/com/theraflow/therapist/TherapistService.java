@@ -9,6 +9,7 @@ import com.theraflow.account.model.Account;
 import com.theraflow.therapist.about.Address;
 import com.theraflow.account.AccountRepository;
 import com.theraflow.therapist.dto.TherapistRequest;
+import com.theraflow.exception.model.ErrorCode;
 import com.theraflow.therapist.dto.TherapistResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,7 +24,6 @@ import java.util.UUID;
 @Service
 @Transactional
 public class TherapistService {
-    private static final String ENTITY_NAME = "Therapist";
     private final TherapistRepository therapistRepository;
     private final AccountRepository accountRepository;
     private final DtoTherapistMapper mapper;
@@ -108,7 +108,7 @@ public class TherapistService {
 
     private Therapist findTherapistByAccountId(UUID accountId) {
         return therapistRepository.findByAccountId(accountId)
-                .orElseThrow(() -> new EntityNotFoundException(ENTITY_NAME, accountId));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.THERAPIST_NOT_FOUND, accountId));
     }
 
     private List<Address> mutableAddressesOf(Therapist therapist) {
@@ -124,7 +124,7 @@ public class TherapistService {
             }
         }
 
-        throw new EntityNotFoundException("Address", addressId);
+        throw new EntityNotFoundException(ErrorCode.ADDRESS_NOT_FOUND, addressId);
     }
 
 }

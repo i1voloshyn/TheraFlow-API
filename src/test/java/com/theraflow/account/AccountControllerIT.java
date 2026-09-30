@@ -7,9 +7,9 @@ import com.theraflow.TestcontainersConfiguration;
 import com.theraflow.account.dto.AccountRequest;
 import com.theraflow.account.dto.AccountResponse;
 import com.theraflow.account.dto.SignUpResponse;
+import com.theraflow.account.model.AccountType;
 import com.theraflow.exception.model.ErrorCode;
 import com.theraflow.exception.model.ErrorResponse;
-import com.theraflow.account.model.AccountType;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.AfterEach;
@@ -94,7 +94,7 @@ public class AccountControllerIT {
                 .expectStatus().isEqualTo(HttpStatus.CONFLICT)
                 .expectBody(ErrorResponse.class)
                 .value(error -> {
-                    assertThat(error.status()).isEqualTo(HttpStatus.CONFLICT.value());
+                    assertThat(error.statusCode()).isEqualTo(HttpStatus.CONFLICT.value());
                     assertThat(error.errorCode()).isEqualTo(ErrorCode.RESOURCE_CONFLICT);
                 });
 

@@ -1,15 +1,19 @@
 package com.theraflow.account;
 
 import com.theraflow.account.dto.AccountRequest;
-import com.theraflow.authentication.AuthenticationService;
-import com.theraflow.application.JwtAuthTokenService;
-import com.theraflow.therapist.dto.ChangePasswordRequest;
-import com.theraflow.exception.CurrentPasswordMismatchException;
-import com.theraflow.exception.PasswordPolicyException;
 import com.theraflow.account.model.Account;
 import com.theraflow.account.model.AccountType;
+import com.theraflow.application.JwtAuthTokenService;
+import com.theraflow.authentication.AuthenticationService;
+import com.theraflow.config.PasswordLengthProperties;
+import com.theraflow.exception.InvalidCredentialsException;
+import com.theraflow.exception.PasswordPolicyException;
+import com.theraflow.exception.ResourceConflictException;
+import com.theraflow.exception.model.ErrorCode;
+import com.theraflow.therapist.dto.ChangePasswordRequest;
 import com.theraflow.util.PasswordValidator;
 import com.theraflow.util.PasswordViolation;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,31 +24,30 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AccountServiceTest {
-    private static final String EMAIL = "therapist@example.com";
-    private static final String VERIFICATION_TOKEN = "email-verification-access";
     private static final UUID ACCOUNT_ID =
             UUID.fromString("cc837471-3c4b-4d77-a825-c4c1cf3a1dc5");
+
+    @Spy
+    private final PasswordValidator passwordValidator =
+            new PasswordValidator(new PasswordLengthProperties(10, 20));
 
     @Mock
     private AccountRepository accountRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
-    @Mock
-    private PasswordValidator passwordValidator;
     @Mock
     private AuthenticationService authService;
     @Mock
@@ -56,30 +59,58 @@ class AccountServiceTest {
     @InjectMocks
     private AccountService accountService;
 
+    @DisplayName("Sign up with existing email throws ResourceConflictException")
     @Test
-    void createAccount_withInvalidPassword_doesNotSignUp() {
+    void signUp_error1() {
+        AccountRequest request = new AccountRequest(
+                "therapist@example.com",
+                "Valid-password",
+                AccountType.THERAPIST);
+
+        when(accountRepository.existsByEmail(request.email())).thenReturn(true);
+
+        assertThatThrownBy(() -> accountService.signUp(request))
+                .isInstanceOf(ResourceConflictException.class)
+                .satisfies(exception -> assertThat(((ResourceConflictException) exception).getErrorCode())
+                        .isEqualTo(ErrorCode.EMAIL_ALREADY_EXISTS));
+
+        verify(accountRepository).existsByEmail(request.email());
+        verifyNoMoreInteractions(accountRepository);
+        verifyNoInteractions(
+                passwordValidator,
+                passwordEncoder,
+                jwtService,
+                accountMapper,
+                eventPublisher,
+                authService
+        );
+
+    }
+
+    @DisplayName("Sign up with weak password throws PasswordPolicyException")
+    @Test
+    void signUp_error2() {
         String rawPassword = "WeakPassword";
         AccountRequest request = new AccountRequest(
                 "therapist@example.com",
                 rawPassword,
                 AccountType.THERAPIST);
 
-        PasswordPolicyException expectedException = new PasswordPolicyException(
-                Set.of(PasswordViolation.MISSING_NUMBER, PasswordViolation.MISSING_SPECIAL_CHARACTER));
-
-        doThrow(expectedException)
-                .when(passwordValidator)
-                .validate(rawPassword);
-
         assertThatThrownBy(() -> accountService.signUp(request))
-                .isSameAs(expectedException);
+                .isInstanceOf(PasswordPolicyException.class)
+                .satisfies(exception -> assertThat(((PasswordPolicyException) exception).getViolations())
+                        .containsExactlyInAnyOrder(
+                                PasswordViolation.MISSING_SPECIAL_CHARACTER,
+                                PasswordViolation.MISSING_NUMBER
+                        ));
 
+        verify(accountRepository).existsByEmail(request.email());
         verify(passwordValidator).validate(rawPassword);
+        verifyNoMoreInteractions(accountRepository);
         verifyNoInteractions(
                 passwordEncoder,
                 jwtService,
                 accountMapper,
-                accountRepository,
                 eventPublisher,
                 authService
         );
@@ -111,8 +142,9 @@ class AccountServiceTest {
         verify(passwordEncoder).encode(newPassword);
     }
 
+    @DisplayName("Change password with incorrect old password throws InvalidCredentialsException")
     @Test
-    void changePassword_withIncorrectOldPassword_throwsCurrentPasswordMismatchException() {
+    void changePassword_error1() {
         String incorrectOldPassword = "WrongPassword1!";
         String currentPasswordHash = "current-password-hash";
         ChangePasswordRequest request = new ChangePasswordRequest(
@@ -127,7 +159,9 @@ class AccountServiceTest {
         when(passwordEncoder.matches(incorrectOldPassword, currentPasswordHash)).thenReturn(false);
 
         assertThatThrownBy(() -> accountService.changePassword(request, ACCOUNT_ID))
-                .isInstanceOf(CurrentPasswordMismatchException.class);
+                .isInstanceOf(InvalidCredentialsException.class)
+                .satisfies(exception -> assertThat(((InvalidCredentialsException) exception)
+                        .getErrorCode()).isEqualTo(ErrorCode.PASSWORD_INCORRECT));
 
         assertThat(account.getPasswordHash()).isEqualTo(currentPasswordHash);
         verify(accountRepository).findById(ACCOUNT_ID);
@@ -149,11 +183,11 @@ class AccountServiceTest {
         when(passwordEncoder.matches(currentPassword, currentPasswordHash)).thenReturn(true);
 
         assertThatThrownBy(() -> accountService.changePassword(request, ACCOUNT_ID))
-                .isInstanceOf(PasswordPolicyException.class)
-                .satisfies(exception -> assertThat(((PasswordPolicyException) exception).getViolations())
-                        .containsExactly(PasswordViolation.SAME_AS_CURRENT));
+                .isInstanceOf(ResourceConflictException.class)
+                .satisfies(exception -> assertThat(((ResourceConflictException) exception).getErrorCode())
+                        .isEqualTo(ErrorCode.PASSWORD_SAME_AS_OLD));
 
-        verifyNoInteractions(passwordValidator);
+        verify(passwordValidator).validate(currentPassword);
         verify(passwordEncoder, never()).encode(any());
     }
 //

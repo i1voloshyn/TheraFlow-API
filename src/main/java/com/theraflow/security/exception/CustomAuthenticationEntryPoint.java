@@ -1,6 +1,5 @@
-package com.theraflow.security;
+package com.theraflow.security.exception;
 
-import com.theraflow.exception.JwtExpiredException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.AuthenticationException;
@@ -28,7 +27,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     }
 
     private ErrorDetails getErrorDetails(HttpServletRequest request, AuthenticationException exception) {
-        if (exception instanceof JwtExpiredException e) {
+        if (exception instanceof AccessTokenException e) {
             return new ErrorDetails(401, "TOKEN_EXPIRED", e.getMessage(), request.getServletPath());
         } else {
             return new ErrorDetails(401, "UNAUTHORIZED", exception.getMessage(), request.getServletPath());

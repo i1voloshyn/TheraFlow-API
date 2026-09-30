@@ -2,6 +2,7 @@ package com.theraflow.util;
 
 import com.theraflow.config.PasswordLengthProperties;
 import com.theraflow.exception.PasswordPolicyException;
+import com.theraflow.exception.model.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -31,7 +32,7 @@ public class PasswordValidator {
         }
 
         if (!violations.isEmpty()) {
-            throw new PasswordPolicyException(violations);
+            throw new PasswordPolicyException(ErrorCode.PASSWORD_WEAK,violations);
         }
     }
 
