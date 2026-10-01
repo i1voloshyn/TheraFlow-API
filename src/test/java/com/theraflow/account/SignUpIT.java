@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 )
 @AutoConfigureRestTestClient
 @Import(TestcontainersConfiguration.class)
-public class AccountControllerIT {
+public class SignUpIT {
     private static final String ACCOUNTS_PATH = "/api/v1/accounts";
     private static final String VALID_PASSWORD = "123!ValidPassword";
 
@@ -65,7 +65,7 @@ public class AccountControllerIT {
 
         assertThat(response).isNotNull();
         assertThat(actual.id()).isNotNull();
-        assertThat(actual.email()).isEqualTo(email);
+        assertThat(actual.email()).isEqualTo(request.email());
 
         assertThat(greenMail.waitForIncomingEmail(5000, 1)).isTrue();
         assertThat(greenMail.getReceivedMessages()).hasSize(1);
@@ -95,7 +95,7 @@ public class AccountControllerIT {
                 .expectBody(ErrorResponse.class)
                 .value(error -> {
                     assertThat(error.statusCode()).isEqualTo(HttpStatus.CONFLICT.value());
-                    assertThat(error.errorCode()).isEqualTo(ErrorCode.RESOURCE_CONFLICT);
+                    assertThat(error.errorCode()).isEqualTo(ErrorCode.EMAIL_ALREADY_EXISTS  );
                 });
 
         assertThat(accountRepository.count()).isOne();

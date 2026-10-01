@@ -50,7 +50,7 @@ public class AccountService {
         RefreshToken refreshToken = authenticationService.buildRefreshToken(tokens.refresh());
         account.setRefreshToken(refreshToken);
 
-        publishSentEmailEvent(account);
+         publishSentEmailEvent(account);
 
         return new SignUpResponse(mapper.toResponse(account), tokens);
     }
