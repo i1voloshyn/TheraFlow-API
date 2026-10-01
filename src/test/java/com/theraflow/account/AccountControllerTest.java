@@ -152,7 +152,8 @@ class AccountControllerTest {
                 UUID.randomUUID(),
                 "valid-email@gmail.com",
                 "password_hash",
-                true
+                true,
+                AccountType.THERAPIST
         );
 
         mockMvc.perform(get("/api/v1/accounts/verify-email")
@@ -172,7 +173,8 @@ class AccountControllerTest {
                 accountId,
                 "valid-email",
                 "password_hash",
-                true
+                true,
+                AccountType.THERAPIST
         );
 
         String oldPassword = "old-password";
@@ -205,7 +207,8 @@ class AccountControllerTest {
                 accountId,
                 "valid-email",
                 "password_hash",
-                true
+                true,
+                AccountType.THERAPIST
         );
 
         String oldPassword = "wrong-password";

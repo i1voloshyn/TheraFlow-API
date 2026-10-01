@@ -29,7 +29,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 account.getId(),
                 account.getEmail(),
                 account.getPasswordHash(),
-                Boolean.TRUE.equals(account.getEmailVerified())
+                Boolean.TRUE.equals(account.getEmailVerified()),
+                account.getType()
         );
     }
 }

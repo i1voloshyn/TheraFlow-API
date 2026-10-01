@@ -1,5 +1,6 @@
 package com.theraflow.application;
 
+import com.theraflow.account.model.AccountType;
 import com.theraflow.security.model.TheraflowUser;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class JwtAuthTokenService {
     private static final String VERIFIED_CLAIM = "verified";
+    private static final String ACCOUNT_TYPE_CLAIM = "account_type";
 
     private final JwtService jwtService;
 
@@ -28,8 +30,9 @@ public class JwtAuthTokenService {
         String email = claims.getSubject();
         UUID accountId = extractAccountId(claims);
         boolean verified = Boolean.TRUE.equals(claims.get(VERIFIED_CLAIM, Boolean.class));
+        AccountType type = claims.get(ACCOUNT_TYPE_CLAIM, AccountType.class);
 
-        return new TheraflowUser(accountId, email, null, verified);
+        return new TheraflowUser(accountId, email, null, verified, type);
     }
 
     private UUID extractAccountId(Claims claims) {
@@ -42,6 +45,7 @@ public class JwtAuthTokenService {
     ) {
         return jwtService.tokenBuilder(accessExpiration, accessSecret)
                 .claim("accountId", userDetails.getAccountId().toString())
+                .claim(ACCOUNT_TYPE_CLAIM, userDetails.getType().name())
                 .claim(VERIFIED_CLAIM, userDetails.isVerified())
                 .subject(userDetails.getUsername())
                 .compact();

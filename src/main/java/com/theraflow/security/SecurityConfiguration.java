@@ -1,6 +1,8 @@
 package com.theraflow.security;
 
+import com.theraflow.account.model.AccountType;
 import com.theraflow.security.exception.CustomAuthenticationEntryPoint;
+import com.theraflow.security.model.TheraflowUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,6 +10,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -37,10 +40,23 @@ public class SecurityConfiguration {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(req ->
-                        req.requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/api/v1/accounts").permitAll()
-                                .anyRequest().authenticated() // Guardian is able to create Therapist Account which is not correct
+                .authorizeHttpRequests(auth -> {
+                            auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
+                                    .requestMatchers(HttpMethod.POST, "/api/v1/accounts").permitAll();
+
+                            auth.requestMatchers("/api/v1/therapist")
+                                    .access((authenticationSupplier, reqContext) -> {
+                                                var authentication = authenticationSupplier.get();
+                                                if (authentication.getPrincipal() instanceof TheraflowUser user) {
+                                                    boolean decision = user.isVerified() && user.getType()==AccountType.THERAPIST;
+                                                    return new AuthorizationDecision(decision);
+                                                }
+                                                return new AuthorizationDecision(false);
+                                            }
+                                    );
+
+                            auth.anyRequest().authenticated();
+                        }
                 )
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(customAuthenticationEntryPoint)

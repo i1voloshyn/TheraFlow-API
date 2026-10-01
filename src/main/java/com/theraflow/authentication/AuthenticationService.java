@@ -95,7 +95,12 @@ public class AuthenticationService {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ACCOUNT_NOT_FOUND, accountId));
 
-        TheraflowUser user = new TheraflowUser(account.getId(), account.getEmail(), null, account.getEmailVerified());
+        TheraflowUser user = new TheraflowUser(
+                account.getId(),
+                account.getEmail(),
+                null,
+                account.getEmailVerified()
+                , account.getType());
 
         String newAccessToken = jwtService.generateAccessToken(user);
         String newRawRefreshToken = UUID.randomUUID().toString();

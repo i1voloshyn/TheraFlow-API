@@ -1,5 +1,6 @@
 package com.theraflow.security.model;
 
+import com.theraflow.account.model.AccountType;
 import jakarta.annotation.Nullable;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
@@ -12,8 +13,6 @@ import java.util.UUID;
 
 public class TheraflowUser implements UserDetails {
 
-    public static final String VERIFIED_AUTHORITY = "ACCOUNT_VERIFIED";
-
     @Getter
     private final UUID accountId;
     private final String email;
@@ -21,23 +20,20 @@ public class TheraflowUser implements UserDetails {
     private final String password;
     @Getter
     private final boolean verified;
+    @Getter
+    private final AccountType type;
 
-    public TheraflowUser(UUID accountId, String email, @Nullable String password, boolean verified) {
+    public TheraflowUser(UUID accountId, String email, @Nullable String password, boolean verified, AccountType type) {
         this.accountId = accountId;
         this.email = email;
         this.password = password;
         this.verified = verified;
-    }
-
-    public TheraflowUser(UUID accountId, String email, @Nullable String password) {
-        this(accountId, email, password, false);
+        this.type = type;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return verified
-                ? List.of(new SimpleGrantedAuthority(VERIFIED_AUTHORITY))
-                : List.of();
+        return List.of();
     }
 
     @Override
