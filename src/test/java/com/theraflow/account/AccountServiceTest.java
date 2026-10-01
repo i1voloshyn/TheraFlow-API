@@ -3,9 +3,10 @@ package com.theraflow.account;
 import com.theraflow.account.dto.AccountRequest;
 import com.theraflow.account.model.Account;
 import com.theraflow.account.model.AccountType;
-import com.theraflow.application.JwtAuthTokenService;
+import com.theraflow.application.JwtEmailVerificationTokenService;
 import com.theraflow.authentication.AuthenticationService;
 import com.theraflow.config.PasswordLengthProperties;
+import com.theraflow.exception.EntityNotFoundException;
 import com.theraflow.exception.InvalidCredentialsException;
 import com.theraflow.exception.PasswordPolicyException;
 import com.theraflow.exception.ResourceConflictException;
@@ -13,6 +14,7 @@ import com.theraflow.exception.model.ErrorCode;
 import com.theraflow.therapist.dto.ChangePasswordRequest;
 import com.theraflow.util.PasswordValidator;
 import com.theraflow.util.PasswordViolation;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,7 +53,7 @@ class AccountServiceTest {
     @Mock
     private AuthenticationService authService;
     @Mock
-    private JwtAuthTokenService jwtService;
+    private JwtEmailVerificationTokenService jwtEmailService;
     @Mock
     private ApplicationEventPublisher eventPublisher;
     @Spy
@@ -79,7 +81,7 @@ class AccountServiceTest {
         verifyNoInteractions(
                 passwordValidator,
                 passwordEncoder,
-                jwtService,
+                jwtEmailService,
                 accountMapper,
                 eventPublisher,
                 authService
@@ -109,7 +111,7 @@ class AccountServiceTest {
         verifyNoMoreInteractions(accountRepository);
         verifyNoInteractions(
                 passwordEncoder,
-                jwtService,
+                jwtEmailService,
                 accountMapper,
                 eventPublisher,
                 authService
@@ -117,7 +119,8 @@ class AccountServiceTest {
     }
 
     @Test
-    void changePassword_withCorrectOldPassword_updatesPasswordHash() {
+    @DisplayName("Change password with correct old password updates password hash")
+    void changePassword_success() {
         String oldPassword = "OldPassword1!";
         String currentPasswordHash = "current-password-hash";
         String newPassword = "NewPassword1!";
@@ -169,8 +172,9 @@ class AccountServiceTest {
         verify(passwordEncoder, never()).encode(any());
     }
 
+    @DisplayName("Change password with new password same as old password throws ResourceConflictException")
     @Test
-    void changePassword_withCurrentPasswordAsNewPassword_rejectsPasswordReuse() {
+    void changePassword_error2() {
         String currentPassword = "CurrentPassword1!";
         String currentPasswordHash = "current-password-hash";
         ChangePasswordRequest request = new ChangePasswordRequest(currentPassword, currentPassword);
@@ -190,33 +194,48 @@ class AccountServiceTest {
         verify(passwordValidator).validate(currentPassword);
         verify(passwordEncoder, never()).encode(any());
     }
-//
-//    @Test
-//    void verifyEmail_withExpiredToken_throwsTokenExpiredException() {
-//        ExpiredJwtException expiredJwtException =
-//                new ExpiredJwtException(null, null, "Token expired");
-//
-//        when(jwtService.extractEmailFromVerificationToken(VERIFICATION_TOKEN))
-//                .thenThrow(expiredJwtException);
-//
-//        assertThatThrownBy(() -> accountService.verifyEmail(VERIFICATION_TOKEN))
-//                .isInstanceOf(TokenExpiredException.class)
-//                .hasMessage("The email verification link has expired. Please request a new one.");
-//
-//        verifyNoInteractions(accountRepository);
-//    }
-//
-//    @Test
-//    void verifyEmail_whenAccountDoesNotExist_throwsEntityNotFoundException() {
-//        when(jwtService.extractEmailFromVerificationToken(VERIFICATION_TOKEN)).thenReturn(EMAIL);
-//        when(accountRepository.findAccountByEmail(EMAIL)).thenReturn(Optional.empty());
-//
-//        assertThatThrownBy(() -> accountService.verifyEmail(VERIFICATION_TOKEN))
-//                .isInstanceOf(EntityNotFoundException.class)
-//                .hasMessage("Account with email %s not found.", EMAIL);
-//
-//        verify(jwtService).extractEmailFromVerificationToken(VERIFICATION_TOKEN);
-//        verify(accountRepository).findAccountByEmail(EMAIL);
-//    }
+
+    @DisplayName("""
+            Verified email with expired token
+            Should thrown InvalidCredentialsException
+            With EMAIL_VERIFICATION_LINK_EXPIRED error code
+            """)
+    @Test
+    void verifyEmail_error1() {
+        String validVerificationToken = "cc837471-3c4b-4d77-a825-c4c1cf3a1dc5";
+
+        when(jwtEmailService.extractEmail(validVerificationToken))
+                .thenThrow(new ExpiredJwtException(null, null, "Token expired"));
+
+        assertThatThrownBy(() -> accountService.verifyEmail(validVerificationToken))
+                .isInstanceOf(InvalidCredentialsException.class)
+                .satisfies(exception ->
+                        assertThat(((InvalidCredentialsException) exception).getErrorCode())
+                                .isEqualTo(ErrorCode.EMAIL_VERIFICATION_LINK_EXPIRED));
+
+        verifyNoInteractions(accountRepository);
+    }
+
+    @DisplayName("""
+            Verified email with valid token but no account found)
+            Should thrown EntityNotFoundException
+            With ACCOUNT_NOT_FOUND error code
+            """)
+    @Test
+    void verifyEmail_error2() {
+        String validVerificationToken = "cc837471-3c4b-4d77-a825-c4c1cf3a1dc5";
+        String validEmail = "email";
+
+        when(jwtEmailService.extractEmail(validVerificationToken)).thenReturn(validEmail);
+        when(accountRepository.findAccountByEmail(validEmail)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> accountService.verifyEmail(validVerificationToken))
+                .isInstanceOf(EntityNotFoundException.class)
+                .satisfies(exception -> assertThat(((EntityNotFoundException) exception).getErrorCode())
+                        .isEqualTo(ErrorCode.ACCOUNT_NOT_FOUND));
+
+        verify(jwtEmailService).extractEmail(validVerificationToken);
+        verify(accountRepository).findAccountByEmail(validEmail);
+    }
 
 }
