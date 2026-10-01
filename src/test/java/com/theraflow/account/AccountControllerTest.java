@@ -70,7 +70,7 @@ class AccountControllerTest {
 
     @DisplayName("Should create and return new account for valid input data")
     @Test
-    void signUp_shouldReturnNewAccount() throws Exception {
+    void signUp_success() throws Exception {
         String email = "valid_email@gmail.com";
         String password = "123StringPassword!";
         AccountType type = AccountType.THERAPIST;
@@ -113,9 +113,9 @@ class AccountControllerTest {
         verify(accountService).signUp(request);
     }
 
-    @DisplayName("Should return bad request when registration email is invalid")
+    @DisplayName("Should return BAD_REQUEST when registration email is invalid")
     @Test
-    void signUp_shouldReturnBadRequest_whenEmailIsInvalid() throws Exception {
+    void signUp_error() throws Exception {
         mockMvc.perform(post("/api/v1/accounts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
@@ -136,7 +136,7 @@ class AccountControllerTest {
 
     @DisplayName("Should reject email verification for an unauthenticated account")
     @Test
-    void emailVerification_shouldRequireAuthentication() throws Exception {
+    void emailVerification_error1() throws Exception {
         mockMvc.perform(get("/api/v1/accounts/verify-email")
                         .param("access", "verification-access"))
                 .andExpect(status().isUnauthorized());
@@ -146,7 +146,7 @@ class AccountControllerTest {
 
     @DisplayName("Should verify email for an authenticated account")
     @Test
-    void emailVerification_shouldVerifyEmail_whenAccountIsAuthenticated() throws Exception {
+    void emailVerification_success() throws Exception {
         String token = "verification-access";
         TheraflowUser user = new TheraflowUser(
                 UUID.randomUUID(),
@@ -166,7 +166,7 @@ class AccountControllerTest {
 
     @DisplayName("Should change password and return no content status when given a valid request")
     @Test
-    void changePassword_successTest() throws Exception {
+    void changePassword_success() throws Exception {
         UUID accountId = UUID.randomUUID();
         TheraflowUser user = new TheraflowUser(
                 accountId,
@@ -198,7 +198,7 @@ class AccountControllerTest {
 
     @DisplayName("Should return 401 and InvalidAccessException with PASSWORD_INCORRECT code for wrong current password")
     @Test
-    void changePassword_error2() throws Exception {
+    void changePassword_error() throws Exception {
         ErrorCode expected = ErrorCode.PASSWORD_INCORRECT;
         UUID accountId = UUID.randomUUID();
         TheraflowUser user = new TheraflowUser(
