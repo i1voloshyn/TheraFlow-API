@@ -25,15 +25,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
-    private final JwtAuthTokenService jwtService;
+    private final JwtAuthTokenService jwtAuthTokenService;
     private final RefreshTokenService refreshTokenService;
     private final AccountRepository accountRepository;
 
     @Transactional
     public AuthTokenPair authenticate(LoginRequest request) {
-        if (!accountRepository.isEmailVerified(request.email())) {
-            throw new PermissionException(ErrorCode.EMAIL_NOT_VERIFIED);
-        }
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.email(),
@@ -41,8 +38,12 @@ public class AuthenticationService {
                 )
         );
 
+        if (!accountRepository.isEmailVerified(request.email())) {
+            throw new PermissionException(ErrorCode.EMAIL_NOT_VERIFIED);
+        }
+
         TheraflowUser user = extractUser(auth);
-        String accessToken = jwtService.generateAccessToken(user);
+        String accessToken = jwtAuthTokenService.generateAccessToken(user);
         String rawRefreshToken = UUID.randomUUID().toString();
 
         saveRefreshToken(user.getAccountId(), rawRefreshToken);

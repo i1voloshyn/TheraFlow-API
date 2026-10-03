@@ -9,7 +9,7 @@ public enum ErrorCode{
     AUTHENTICATION_FAILED(
             HttpStatus.UNAUTHORIZED,
             "Authentication failed",
-            "Invalid email or password"),
+            "You may have entered the wrong email address or password or your account might be locked."),
 
     PASSWORD_INCORRECT(
             HttpStatus.UNAUTHORIZED,
@@ -30,7 +30,7 @@ public enum ErrorCode{
     EMAIL_NOT_VERIFIED(
             HttpStatus.UNAUTHORIZED,
             "Email not verified",
-            "Please verify your email address before logging in. Check your inbox for the verification email or request a new one"),
+            "Verify your account before you sign in or request a verification email."),
 
     TOKEN_INVALID(
             HttpStatus.UNAUTHORIZED,

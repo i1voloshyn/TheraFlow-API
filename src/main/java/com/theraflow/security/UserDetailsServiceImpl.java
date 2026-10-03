@@ -3,6 +3,7 @@ package com.theraflow.security;
 import com.theraflow.account.AccountRepository;
 import com.theraflow.account.model.Account;
 import com.theraflow.exception.EntityNotFoundException;
+import com.theraflow.exception.InvalidCredentialsException;
 import com.theraflow.exception.model.ErrorCode;
 import com.theraflow.security.model.TheraflowUser;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
         Account account = accountRepository.findAccountByEmail(username)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ACCOUNT_NOT_FOUND, username));
+                .orElseThrow(() -> new InvalidCredentialsException(ErrorCode.AUTHENTICATION_FAILED));
         return new TheraflowUser(
                 account.getId(),
                 account.getEmail(),

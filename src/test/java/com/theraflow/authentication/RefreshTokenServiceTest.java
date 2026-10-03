@@ -6,6 +6,7 @@ import com.theraflow.application.refreshToken.RefreshToken;
 import com.theraflow.application.refreshToken.RefreshTokenRepository;
 import com.theraflow.application.refreshToken.RefreshTokenService;
 import com.theraflow.exception.TheraflowApiException;
+import com.theraflow.exception.model.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,7 +57,7 @@ class RefreshTokenServiceTest {
 
         assertThatExceptionOfType(TheraflowApiException.class)
                 .isThrownBy(() -> refreshTokenService.rotateTokens(rawToken))
-                .matches(ex -> ex.getErrorCode().name().equals("REFRESH_TOKEN_REVOKED"));
+                .matches(ex -> ex.getErrorCode().name().equals(ErrorCode.REFRESH_TOKEN_REVOKED.name()));
 
         verifyNoInteractions(accountRepository, jwtService, authenticationManager);
     }
