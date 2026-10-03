@@ -57,13 +57,11 @@ public class SignUpIT {
         String email = "test@email.com";
         AccountRequest request = new AccountRequest(email, VALID_PASSWORD, AccountType.THERAPIST);
 
-        SignUpResponse response = signUp(request)
+        AccountResponse actual = signUp(request)
                 .expectStatus().isCreated()
-                .returnResult(SignUpResponse.class).getResponseBody();
+                .returnResult(AccountResponse.class).getResponseBody();
 
-        AccountResponse actual = response.account();
-
-        assertThat(response).isNotNull();
+        assertThat(actual).isNotNull();
         assertThat(actual.id()).isNotNull();
         assertThat(actual.email()).isEqualTo(request.email());
 

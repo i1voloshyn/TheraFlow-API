@@ -4,6 +4,7 @@ import com.theraflow.account.AccountRepository;
 import com.theraflow.application.JwtAuthTokenService;
 import com.theraflow.application.refreshToken.RefreshToken;
 import com.theraflow.application.refreshToken.RefreshTokenRepository;
+import com.theraflow.application.refreshToken.RefreshTokenService;
 import com.theraflow.exception.TheraflowApiException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,7 +21,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class AuthenticationServiceTest {
+class RefreshTokenServiceTest {
     @Mock
     private RefreshTokenRepository refreshTokenRepository;
 
@@ -34,7 +35,7 @@ class AuthenticationServiceTest {
     private JwtAuthTokenService jwtService;
 
     @InjectMocks
-    private AuthenticationService authenticationService;
+    private RefreshTokenService refreshTokenService;
 
     @DisplayName("Should thrown an exception when refresh token is expired")
     @Test
@@ -46,7 +47,7 @@ class AuthenticationServiceTest {
     @Test
     void rotateToken_sc2() {
         String rawToken = "123e4567-e89b-12d3-a456-426614174000";
-        String rawTokenHash = authenticationService.hashRefreshToken(rawToken);
+        String rawTokenHash = refreshTokenService.hashRefreshToken(rawToken);
         RefreshToken oldRefreshToken = new RefreshToken();
         oldRefreshToken.setTokenHash(rawTokenHash);
         oldRefreshToken.setIsRevoked(true);
@@ -54,7 +55,7 @@ class AuthenticationServiceTest {
         when(refreshTokenRepository.findByTokenHash(rawTokenHash)).thenReturn(Optional.of(oldRefreshToken));
 
         assertThatExceptionOfType(TheraflowApiException.class)
-                .isThrownBy(() -> authenticationService.rotateTokens(rawToken))
+                .isThrownBy(() -> refreshTokenService.rotateTokens(rawToken))
                 .matches(ex -> ex.getErrorCode().name().equals("REFRESH_TOKEN_REVOKED"));
 
         verifyNoInteractions(accountRepository, jwtService, authenticationManager);

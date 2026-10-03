@@ -11,9 +11,9 @@
   - → [Email Verification](#email-verification)
 - [x] Verify email address
   - → [Email Verification](#email-verification)
-- [ ] Restrict protected features for unverified accounts
-  - Registered but unverified therapist → can log in
-  - Unverified therapist → cannot create/manage patients
+- [ ] Unverified account should not be able to log in
+  - → [Email Verification](#email-verification)
+- [ ] After email was verified - client can log in and receive access token 
 
 
 ### Authentication
@@ -82,10 +82,10 @@ Used by:
 - [x] Generate refresh token
 - [x] Hash refresh token
 - [x] Persist refresh token
-- [ ] Find refresh token
-- [ ] Validate refresh token
-- [ ] Revoke refresh token
-- [ ] Rotate refresh token
+- [x] Find refresh token
+- [x] Validate refresh token
+- [x] Revoke refresh token
+- [x] Rotate refresh token
 
 
 ### Email Verification
@@ -93,9 +93,10 @@ Used by:
 - [x] Send verification email
 - [x] Validate verification token
 - [x] Mark account as verified
+- [ ] Generate new access and refresh tokens
 
 ### Password
-- [ ] Change password
+- [x] Change password
 - [ ] Forgot password
 - [ ] Reset password
 

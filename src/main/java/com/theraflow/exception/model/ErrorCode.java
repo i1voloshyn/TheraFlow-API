@@ -27,6 +27,11 @@ public enum ErrorCode{
             "Email verification link expired",
             "The email verification link has expired. Please request a new verification email"),
 
+    EMAIL_NOT_VERIFIED(
+            HttpStatus.UNAUTHORIZED,
+            "Email not verified",
+            "Please verify your email address before logging in. Check your inbox for the verification email or request a new one"),
+
     TOKEN_INVALID(
             HttpStatus.UNAUTHORIZED,
             "Token invalid",

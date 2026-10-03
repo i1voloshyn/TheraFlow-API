@@ -2,18 +2,15 @@ package com.theraflow.account;
 
 import com.theraflow.account.dto.AccountRequest;
 import com.theraflow.account.dto.AccountResponse;
-import com.theraflow.account.dto.SignUpResponse;
 import com.theraflow.account.model.AccountType;
-import com.theraflow.authentication.AuthenticationService;
+import com.theraflow.application.JwtAuthTokenService;
+import com.theraflow.authentication.model.AuthTokenPair;
 import com.theraflow.exception.InvalidCredentialsException;
 import com.theraflow.exception.model.ErrorCode;
-import com.theraflow.security.exception.CustomAuthenticationEntryPoint;
-import com.theraflow.security.SecurityConfiguration;
 import com.theraflow.security.JwtAuthenticationFilter;
-import com.theraflow.application.JwtAuthTokenService;
-import com.theraflow.authentication.model.LoginRequest;
+import com.theraflow.security.SecurityConfiguration;
+import com.theraflow.security.exception.CustomAuthenticationEntryPoint;
 import com.theraflow.security.model.TheraflowUser;
-import com.theraflow.authentication.model.AuthTokenPair;
 import com.theraflow.therapist.dto.ChangePasswordRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,8 +31,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -60,9 +57,6 @@ class AccountControllerTest {
     private AccountService accountService;
 
     @MockitoBean
-    private AuthenticationService authenticationService;
-
-    @MockitoBean
     private JwtAuthTokenService jwtAuthenticationService;
 
     @MockitoBean
@@ -74,7 +68,6 @@ class AccountControllerTest {
         String email = "valid_email@gmail.com";
         String password = "123StringPassword!";
         AccountType type = AccountType.THERAPIST;
-        AuthTokenPair tokens = new AuthTokenPair("some-valid-access", "some-valid-refresh");
 
         AccountRequest request = new AccountRequest(email, password, type);
         UUID accId = UUID.fromString("cc837471-3c4b-4d77-a825-c4c1cf3a1dc5");
@@ -88,10 +81,7 @@ class AccountControllerTest {
                 updatedAt
         );
 
-        SignUpResponse response = new SignUpResponse(expected, tokens);
-
-        when(accountService.signUp(request)).thenReturn(response);
-        when(authenticationService.authenticate(new LoginRequest(email, password))).thenReturn(tokens);
+        when(accountService.signUp(request)).thenReturn(expected);
 
         MvcResult result = mockMvc.perform(post("/api/v1/accounts")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -107,9 +97,9 @@ class AccountControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andReturn();
-        SignUpResponse actual = objectMapper.readValue(result.getResponse().getContentAsString(), SignUpResponse.class);
+        AccountResponse actual = objectMapper.readValue(result.getResponse().getContentAsString(), AccountResponse.class);
 
-        assertThat(actual.account()).isEqualTo(expected);
+        assertThat(actual).isEqualTo(expected);
         verify(accountService).signUp(request);
     }
 

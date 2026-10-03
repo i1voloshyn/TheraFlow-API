@@ -1,5 +1,6 @@
 package com.theraflow.authentication;
 
+import com.theraflow.application.refreshToken.RefreshTokenService;
 import com.theraflow.authentication.model.LoginRequest;
 import com.theraflow.authentication.model.AuthTokenPair;
 import com.theraflow.authentication.model.TokenRotateRequest;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/auth")
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
+    private final RefreshTokenService refreshTokenService;
 
     @PostMapping("/login")
     public ResponseEntity<AuthTokenPair> login(
@@ -29,7 +31,7 @@ public class AuthenticationController {
     public ResponseEntity<AuthTokenPair> refreshToken(
             @RequestBody TokenRotateRequest request
     ) {
-        AuthTokenPair tokens = authenticationService.rotateTokens(request.refreshToken());
+        AuthTokenPair tokens = refreshTokenService.rotateTokens(request.refreshToken());
         return ResponseEntity.ok(tokens);
     }
 }

@@ -1,7 +1,7 @@
 package com.theraflow.account;
 
 import com.theraflow.account.dto.AccountRequest;
-import com.theraflow.account.dto.SignUpResponse;
+import com.theraflow.account.dto.AccountResponse;
 import com.theraflow.security.model.TheraflowUser;
 import com.theraflow.therapist.dto.ChangePasswordRequest;
 import jakarta.validation.Valid;
@@ -28,10 +28,10 @@ public class AccountController {
     private final AccountService accountService;
 
     @PostMapping
-    public ResponseEntity<SignUpResponse> signUp(
+    public ResponseEntity<AccountResponse> signUp(
             @Valid @RequestBody AccountRequest request
     ) {
-        SignUpResponse response = accountService.signUp(request);
+        AccountResponse response = accountService.signUp(request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(response);
