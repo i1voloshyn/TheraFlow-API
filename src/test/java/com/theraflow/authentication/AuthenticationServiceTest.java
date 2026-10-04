@@ -100,6 +100,8 @@ class AuthenticationServiceTest {
 
         assertThat(actual.access()).isEqualTo(expected.access());
         assertThat(actual.refresh()).isEqualTo(expected.refresh());
+
+        assertThat(account.getRefreshTokens()).containsExactly(expectedRefreshToken);
     }
 
     @DisplayName("Should throw PermissionException for account with unverified email status ")
