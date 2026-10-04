@@ -38,13 +38,13 @@ class RefreshTokenServiceTest {
     @InjectMocks
     private RefreshTokenService refreshTokenService;
 
-    @DisplayName("Should thrown an exception when refresh token is expired")
+    @DisplayName("Should thrown an exception when refresh tokens is expired")
     @Test
     void rotateToken_sc1() {
 
     }
 
-    @DisplayName("Should thrown an exception with REFRESH_TOKEN_REVOKED code when refresh token is revoked")
+    @DisplayName("Should thrown an exception with REFRESH_TOKEN_REVOKED code when refresh tokens is revoked")
     @Test
     void rotateToken_sc2() {
         String rawToken = "123e4567-e89b-12d3-a456-426614174000";

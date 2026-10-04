@@ -11,16 +11,16 @@
   - → [Email Verification](#email-verification)
 - [x] Verify email address
   - → [Email Verification](#email-verification)
-- [ ] Unverified account should not be able to log in
+- [x] Unverified account should not be able to log in
   - → [Email Verification](#email-verification)
-- [ ] After email was verified - client can log in and receive access token 
+- [x] After email was verified - client can log in and receive access token 
 
 
 ### Authentication
 
 #### Login
 - [x] Authenticate credentials
-- [ ] Generate authentication tokens
+- [x] Generate authentication tokens
   - → [Authentication Token Flow](#authentication-token-flow)
 
 #### Logout
@@ -93,7 +93,6 @@ Used by:
 - [x] Send verification email
 - [x] Validate verification token
 - [x] Mark account as verified
-- [ ] Generate new access and refresh tokens
 
 ### Password
 - [x] Change password

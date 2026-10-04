@@ -4,7 +4,6 @@ import com.theraflow.account.dto.AccountRequest;
 import com.theraflow.account.dto.AccountResponse;
 import com.theraflow.account.model.AccountType;
 import com.theraflow.application.JwtAuthTokenService;
-import com.theraflow.authentication.model.AuthTokenPair;
 import com.theraflow.exception.InvalidCredentialsException;
 import com.theraflow.exception.model.ErrorCode;
 import com.theraflow.security.JwtAuthenticationFilter;
@@ -147,7 +146,7 @@ class AccountControllerTest {
         );
 
         mockMvc.perform(get("/api/v1/accounts/verify-email")
-                        .param("token", token)
+                        .param("tokens", token)
                         .with(user(user)))
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));

@@ -35,17 +35,17 @@ public enum ErrorCode{
     TOKEN_INVALID(
             HttpStatus.UNAUTHORIZED,
             "Token invalid",
-            "The provided token is invalid or malformed. Please log in again"),
+            "The provided tokens is invalid or malformed. Please log in again"),
 
     TOKEN_EXPIRED(
             HttpStatus.UNAUTHORIZED,
             "Token expired",
-            "The provided token has expired. Please log in again or use a refresh token to obtain a new one"),
+            "The provided tokens has expired. Please log in again or use a refresh tokens to obtain a new one"),
 
     REFRESH_TOKEN_REVOKED(
             HttpStatus.UNAUTHORIZED,
-            "Refresh token revoked",
-            "The refresh token has been revoked. Please log in again"),
+            "Refresh tokens revoked",
+            "The refresh tokens has been revoked. Please log in again"),
 
     // ========== Not Found Errors ==========
     ACCOUNT_NOT_FOUND(

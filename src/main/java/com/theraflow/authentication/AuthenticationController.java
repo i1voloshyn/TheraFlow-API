@@ -2,7 +2,7 @@ package com.theraflow.authentication;
 
 import com.theraflow.application.refreshToken.RefreshTokenService;
 import com.theraflow.authentication.model.LoginRequest;
-import com.theraflow.authentication.model.AuthTokenPair;
+import com.theraflow.authentication.model.JwtPair;
 import com.theraflow.authentication.model.TokenRotateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,19 +19,19 @@ public class AuthenticationController {
     private final RefreshTokenService refreshTokenService;
 
     @PostMapping("/login")
-    public ResponseEntity<AuthTokenPair> login(
+    public ResponseEntity<JwtPair> login(
             @RequestBody LoginRequest request
     ) {
-        AuthTokenPair tokens = authenticationService.authenticate(request);
+        JwtPair tokens = authenticationService.authenticate(request);
 
         return ResponseEntity.ok(tokens);
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthTokenPair> refreshToken(
+    public ResponseEntity<JwtPair> refreshToken(
             @RequestBody TokenRotateRequest request
     ) {
-        AuthTokenPair tokens = refreshTokenService.rotateTokens(request.refreshToken());
+        JwtPair tokens = refreshTokenService.rotateTokens(request.refreshToken());
         return ResponseEntity.ok(tokens);
     }
 }

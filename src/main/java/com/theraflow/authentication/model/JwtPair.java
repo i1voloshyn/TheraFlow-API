@@ -1,6 +1,6 @@
 package com.theraflow.authentication.model;
 
-public record AuthTokenPair(
+public record JwtPair(
         String access,
         String refresh
 ) {

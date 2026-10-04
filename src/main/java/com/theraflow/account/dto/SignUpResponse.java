@@ -1,9 +1,9 @@
 package com.theraflow.account.dto;
 
-import com.theraflow.authentication.model.AuthTokenPair;
+import com.theraflow.authentication.model.JwtPair;
 
 public record SignUpResponse(
         AccountResponse account,
-        AuthTokenPair token
+        JwtPair tokens
 ) {
 }

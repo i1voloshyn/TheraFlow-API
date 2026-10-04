@@ -6,7 +6,7 @@ import com.theraflow.account.model.AccountType;
 import com.theraflow.application.JwtAuthTokenService;
 import com.theraflow.application.refreshToken.RefreshToken;
 import com.theraflow.application.refreshToken.RefreshTokenService;
-import com.theraflow.authentication.model.AuthTokenPair;
+import com.theraflow.authentication.model.JwtPair;
 import com.theraflow.authentication.model.LoginRequest;
 import com.theraflow.exception.InvalidCredentialsException;
 import com.theraflow.exception.PermissionException;
@@ -66,7 +66,7 @@ class AuthenticationServiceTest {
     @Test
     void authenticate_success() {
         LoginRequest request = loginRequest();
-        String accessToken = "access-token";
+        String accessToken = "access-tokens";
         String uuidRefreshToken = "123e4567-e89b-12d3-a456-426614174000";
         Authentication authResponse = new AuthenticationImpl();
         Authentication authRequest = new UsernamePasswordAuthenticationToken(
@@ -78,10 +78,10 @@ class AuthenticationServiceTest {
                 .passwordHash("hashed-password")
                 .build();
         RefreshToken expectedRefreshToken = new RefreshToken(
-                "hashed-refresh-token",
+                "hashed-refresh-tokens",
                 clock.instant().plusSeconds(3600));
 
-        AuthTokenPair expected = new AuthTokenPair(accessToken, uuidRefreshToken);
+        JwtPair expected = new JwtPair(accessToken, uuidRefreshToken);
 
         when(authenticationManager.authenticate(authRequest)).thenReturn(authResponse);
         when(accountRepository.isEmailVerified(request.email())).thenReturn(true);
@@ -90,7 +90,7 @@ class AuthenticationServiceTest {
         when(accountRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(account));
         when(refreshTokenService.buildRefreshToken(uuidRefreshToken)).thenReturn(expectedRefreshToken);
 
-        AuthTokenPair actual = authenticationService.authenticate(request);
+        JwtPair actual = authenticationService.authenticate(request);
 
         verify(authenticationManager).authenticate(authRequest);
         verify(accountRepository).isEmailVerified(request.email());

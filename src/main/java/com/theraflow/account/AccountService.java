@@ -44,9 +44,7 @@ public class AccountService {
                 request.type()
         );
         Account saved =  accountRepository.save(toSave);
-
-
-         publishSentEmailEvent(toSave);
+        publishSentEmailEvent(toSave);
 
         return mapper.toResponse(saved);
     }
@@ -90,7 +88,5 @@ public class AccountService {
 
         account.setEmailVerified(true);
 
-        // should generate new token pair and return it in response
-        return;
     }
 }

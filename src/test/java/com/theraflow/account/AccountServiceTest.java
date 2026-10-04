@@ -191,7 +191,7 @@ class AccountServiceTest {
     }
 
     @DisplayName("""
-            Verified email with expired token
+            Verified email with expired tokens
             Should thrown InvalidCredentialsException
             With EMAIL_VERIFICATION_LINK_EXPIRED error code
             """)
@@ -212,7 +212,7 @@ class AccountServiceTest {
     }
 
     @DisplayName("""
-            Verified email with valid token but no account found)
+            Verified email with valid tokens but no account found)
             Should thrown EntityNotFoundException
             With ACCOUNT_NOT_FOUND error code
             """)

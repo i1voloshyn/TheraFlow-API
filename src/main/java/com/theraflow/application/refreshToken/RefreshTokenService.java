@@ -3,7 +3,7 @@ package com.theraflow.application.refreshToken;
 import com.theraflow.account.AccountRepository;
 import com.theraflow.account.model.Account;
 import com.theraflow.application.JwtAuthTokenService;
-import com.theraflow.authentication.model.AuthTokenPair;
+import com.theraflow.authentication.model.JwtPair;
 import com.theraflow.exception.EntityNotFoundException;
 import com.theraflow.exception.TheraflowApiException;
 import com.theraflow.exception.model.ErrorCode;
@@ -51,39 +51,39 @@ public class RefreshTokenService {
             byte[] bytes = messageDigest.digest(token.getBytes(StandardCharsets.UTF_8));
             return new String(Hex.encode(bytes));
         } catch (Exception e) {
-            throw new RuntimeException("Error hashing refresh token", e);
+            throw new RuntimeException("Error hashing refresh tokens", e);
         }
     }
 
     // todo: Add tests
     @Transactional
-    public AuthTokenPair rotateTokens(String rawRefreshToken) {
+    public JwtPair rotateTokens(String rawRefreshToken) {
         String tokenHash = hashRefreshToken(rawRefreshToken);
         RefreshToken oldRefreshToken = refreshTokenRepository.findByTokenHash(tokenHash)
-                .orElseThrow(() -> new AuthenticationServiceException("Invalid refresh token")); //todo own exception
+                .orElseThrow(() -> new AuthenticationServiceException("Invalid refresh tokens")); //todo own exception
 
         if (oldRefreshToken.getIsRevoked()) {
             throw new TheraflowApiException(ErrorCode.REFRESH_TOKEN_REVOKED);
         }
 
         if (oldRefreshToken.getExpiresAt().isBefore(clock.instant())) {
-            throw new AuthenticationServiceException("Refresh token has expired");  //todo own exception
+            throw new AuthenticationServiceException("Refresh tokens has expired");  //todo own exception
         }
 
         UUID accountId = Objects.requireNonNull(oldRefreshToken.getAccount().getId());
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ACCOUNT_NOT_FOUND, accountId));
 
-        AuthTokenPair tokens = generateTokenPair(account);
+        JwtPair tokens = generateTokenPair(account);
         RefreshToken newRefreshToken = buildRefreshToken(tokens.refresh());
 
         oldRefreshToken.setIsRevoked(true);
         account.setRefreshToken(newRefreshToken);
 
-        return new AuthTokenPair(tokens.access(), tokens.refresh());
+        return new JwtPair(tokens.access(), tokens.refresh());
     }
 
-    public AuthTokenPair generateTokenPair(Account account) {
+    public JwtPair generateTokenPair(Account account) {
         TheraflowUser user = new TheraflowUser(
                 account.getId(),
                 account.getEmail(),
@@ -93,7 +93,7 @@ public class RefreshTokenService {
 
         String accessToken = jwtService.generateAccessToken(user);
         String rawRefreshToken = UUID.randomUUID().toString();
-        return new AuthTokenPair(accessToken, rawRefreshToken);
+        return new JwtPair(accessToken, rawRefreshToken);
     }
 
 }

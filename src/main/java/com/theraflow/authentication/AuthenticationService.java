@@ -5,7 +5,7 @@ import com.theraflow.account.model.Account;
 import com.theraflow.application.JwtAuthTokenService;
 import com.theraflow.application.refreshToken.RefreshToken;
 import com.theraflow.application.refreshToken.RefreshTokenService;
-import com.theraflow.authentication.model.AuthTokenPair;
+import com.theraflow.authentication.model.JwtPair;
 import com.theraflow.authentication.model.LoginRequest;
 import com.theraflow.exception.EntityNotFoundException;
 import com.theraflow.exception.PermissionException;
@@ -33,7 +33,7 @@ public class AuthenticationService {
     private final AccountRepository accountRepository;
 
     @Transactional
-    public AuthTokenPair authenticate(LoginRequest request) {
+    public JwtPair authenticate(LoginRequest request) {
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.email(),
@@ -51,7 +51,7 @@ public class AuthenticationService {
 
         saveRefreshToken(user.getAccountId(), rawRefreshToken);
 
-        return new AuthTokenPair(accessToken, rawRefreshToken);
+        return new JwtPair(accessToken, rawRefreshToken);
     }
 
     private void saveRefreshToken(UUID accountId, String rawToken) {
