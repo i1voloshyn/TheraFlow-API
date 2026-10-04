@@ -20,10 +20,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
+import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
+
+    private final Supplier<UUID> uuidSupplier;
     private final AuthenticationManager authenticationManager;
     private final JwtAuthTokenService jwtAuthTokenService;
     private final RefreshTokenService refreshTokenService;
@@ -44,7 +47,7 @@ public class AuthenticationService {
 
         TheraflowUser user = extractUser(auth);
         String accessToken = jwtAuthTokenService.generateAccessToken(user);
-        String rawRefreshToken = UUID.randomUUID().toString();
+        String rawRefreshToken = uuidSupplier.get().toString();
 
         saveRefreshToken(user.getAccountId(), rawRefreshToken);
 
