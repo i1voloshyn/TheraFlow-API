@@ -3,13 +3,15 @@ package com.theraflow.authentication;
 import com.theraflow.account.AccountRepository;
 import com.theraflow.account.model.Account;
 import com.theraflow.account.model.AccountType;
-import com.theraflow.application.JwtAuthTokenService;
+import com.theraflow.application.JwtAuthTokenProvider;
 import com.theraflow.application.refreshToken.RefreshToken;
-import com.theraflow.application.refreshToken.RefreshTokenService;
-import com.theraflow.authentication.model.JwtPair;
-import com.theraflow.authentication.model.LoginRequest;
+import com.theraflow.application.refreshToken.RefreshTokenRepository;
+import com.theraflow.application.refreshToken.UuidTokenProvider;
+import com.theraflow.authentication.dto.JwtPair;
+import com.theraflow.authentication.dto.LoginRequest;
 import com.theraflow.exception.InvalidCredentialsException;
 import com.theraflow.exception.PermissionException;
+import com.theraflow.exception.TheraflowApiException;
 import com.theraflow.exception.model.ErrorCode;
 import com.theraflow.security.model.TheraflowUser;
 import org.jspecify.annotations.Nullable;
@@ -52,10 +54,13 @@ class AuthenticationServiceTest {
     private Supplier<UUID> uuidSupplier;
 
     @Mock
-    private JwtAuthTokenService jwtAuthTokenService;
+    private JwtAuthTokenProvider jwtAuthTokenProvider;
 
     @Mock
-    private RefreshTokenService refreshTokenService;
+    private UuidTokenProvider uuidTokenProvider;
+
+    @Mock
+    private RefreshTokenRepository refreshTokenRepository;
 
     @Mock
     private AccountRepository accountRepository;
@@ -85,18 +90,18 @@ class AuthenticationServiceTest {
 
         when(authenticationManager.authenticate(authRequest)).thenReturn(authResponse);
         when(accountRepository.isEmailVerified(request.email())).thenReturn(true);
-        when(jwtAuthTokenService.generateAccessToken(any(TheraflowUser.class))).thenReturn(accessToken);
+        when(jwtAuthTokenProvider.generateAccessToken(any(TheraflowUser.class))).thenReturn(accessToken);
         when(uuidSupplier.get()).thenReturn(UUID.fromString(uuidRefreshToken));
         when(accountRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(account));
-        when(refreshTokenService.buildRefreshToken(uuidRefreshToken)).thenReturn(expectedRefreshToken);
+        when(uuidTokenProvider.buildRefreshToken(uuidRefreshToken)).thenReturn(expectedRefreshToken);
 
         JwtPair actual = authenticationService.authenticate(request);
 
         verify(authenticationManager).authenticate(authRequest);
         verify(accountRepository).isEmailVerified(request.email());
-        verify(jwtAuthTokenService).generateAccessToken(any(TheraflowUser.class));
+        verify(jwtAuthTokenProvider).generateAccessToken(any(TheraflowUser.class));
         verify(accountRepository).findById(ACCOUNT_ID);
-        verify(refreshTokenService).buildRefreshToken(any(String.class));
+        verify(uuidTokenProvider).buildRefreshToken(any(String.class));
 
         assertThat(actual.access()).isEqualTo(expected.access());
         assertThat(actual.refresh()).isEqualTo(expected.refresh());
@@ -119,7 +124,7 @@ class AuthenticationServiceTest {
                 .isThrownBy(() -> authenticationService.authenticate(request))
                 .matches(ex -> ex.getErrorCode().equals(ErrorCode.EMAIL_NOT_VERIFIED));
 
-        verifyNoInteractions(jwtAuthTokenService, refreshTokenService);
+        verifyNoInteractions(jwtAuthTokenProvider, uuidTokenProvider);
     }
 
     @DisplayName("Should throw InvalidCredentialsException for invalid credentials")
@@ -135,8 +140,33 @@ class AuthenticationServiceTest {
                 .isThrownBy(() -> authenticationService.authenticate(invalidRequest))
                 .matches(ex -> ex.getErrorCode().equals(ErrorCode.AUTHENTICATION_FAILED));
 
-        verifyNoInteractions(jwtAuthTokenService, refreshTokenService, accountRepository);
+        verifyNoInteractions(jwtAuthTokenProvider, uuidTokenProvider, accountRepository);
     }
+
+    @DisplayName("Should thrown an exception when refresh tokens is expired")
+    @Test
+    void rotateToken_sc1() {
+
+    }
+
+    @DisplayName("Should thrown an exception with REFRESH_TOKEN_REVOKED code when refresh tokens is revoked")
+    @Test
+    void rotateToken_sc2() {
+        String rawToken = "123e4567-e89b-12d3-a456-426614174000";
+        String rawTokenHash = uuidTokenProvider.hashRefreshToken(rawToken);
+        RefreshToken oldRefreshToken = new RefreshToken();
+        oldRefreshToken.setTokenHash(rawTokenHash);
+        oldRefreshToken.setIsRevoked(true);
+
+        when(refreshTokenRepository.findByTokenHash(rawTokenHash)).thenReturn(Optional.of(oldRefreshToken));
+
+        assertThatExceptionOfType(TheraflowApiException.class)
+                .isThrownBy(() -> authenticationService.rotateTokens(rawToken))
+                .matches(ex -> ex.getErrorCode().name().equals(ErrorCode.REFRESH_TOKEN_REVOKED.name()));
+
+        verifyNoInteractions(accountRepository, jwtAuthTokenProvider, authenticationManager);
+    }
+
 
     private LoginRequest loginRequest() {
         return new LoginRequest("valid-email", "valid-password");

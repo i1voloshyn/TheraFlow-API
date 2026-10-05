@@ -1,4 +1,4 @@
-package com.theraflow.authentication.model;
+package com.theraflow.authentication.dto;
 
 public record JwtPair(
         String access,

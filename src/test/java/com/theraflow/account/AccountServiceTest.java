@@ -3,7 +3,7 @@ package com.theraflow.account;
 import com.theraflow.account.dto.AccountRequest;
 import com.theraflow.account.model.Account;
 import com.theraflow.account.model.AccountType;
-import com.theraflow.application.JwtEmailVerificationTokenService;
+import com.theraflow.application.JwtEmailVerificationTokenProvider;
 import com.theraflow.config.PasswordLengthProperties;
 import com.theraflow.exception.EntityNotFoundException;
 import com.theraflow.exception.InvalidCredentialsException;
@@ -50,7 +50,7 @@ class AccountServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
-    private JwtEmailVerificationTokenService jwtEmailService;
+    private JwtEmailVerificationTokenProvider jwtEmailService;
     @Mock
     private ApplicationEventPublisher eventPublisher;
     @Spy

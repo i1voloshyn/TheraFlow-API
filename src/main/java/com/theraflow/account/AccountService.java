@@ -3,7 +3,7 @@ package com.theraflow.account;
 import com.theraflow.account.dto.AccountRequest;
 import com.theraflow.account.dto.AccountResponse;
 import com.theraflow.account.model.Account;
-import com.theraflow.application.JwtEmailVerificationTokenService;
+import com.theraflow.application.JwtEmailVerificationTokenProvider;
 import com.theraflow.event.VerificationEmailRequested;
 import com.theraflow.exception.EntityNotFoundException;
 import com.theraflow.exception.InvalidCredentialsException;
@@ -28,7 +28,7 @@ public class AccountService {
     private final PasswordEncoder passwordEncoder;
     private final PasswordValidator passwordValidator;
     private final DtoAccountMapper mapper;
-    private final JwtEmailVerificationTokenService emailVerificationService;
+    private final JwtEmailVerificationTokenProvider jwtEmailVerificationTokenProvider;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
@@ -50,7 +50,7 @@ public class AccountService {
     }
 
     private void publishSentEmailEvent(Account account) {
-        String verificationToken = emailVerificationService.generateToken(account.getEmail());
+        String verificationToken = jwtEmailVerificationTokenProvider.generateToken(account.getEmail());
         eventPublisher.publishEvent(new VerificationEmailRequested(
                 account.getId(),
                 account.getEmail(),
@@ -78,7 +78,7 @@ public class AccountService {
     public void verifyEmail(String token) {
         final String email;
         try {
-            email = emailVerificationService.extractEmail(token);
+            email = jwtEmailVerificationTokenProvider.extractEmail(token);
         } catch (ExpiredJwtException e) {
             throw new InvalidCredentialsException(ErrorCode.EMAIL_VERIFICATION_LINK_EXPIRED);
         }

@@ -2,18 +2,16 @@ package com.theraflow.therapist;
 
 
 import com.theraflow.account.model.AccountType;
-import com.theraflow.application.JwtAuthTokenService;
-import com.theraflow.application.JwtService;
+import com.theraflow.application.JwtAuthTokenProvider;
+import com.theraflow.application.JwtProvider;
 import com.theraflow.security.JwtAuthenticationFilter;
 import com.theraflow.security.SecurityConfiguration;
 import com.theraflow.security.exception.CustomAuthenticationEntryPoint;
 import com.theraflow.security.model.TheraflowUser;
 import com.theraflow.therapist.dto.TherapistRequest;
 import com.theraflow.therapist.dto.TherapistResponse;
-import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -24,8 +22,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.mockito.Mockito.when;
@@ -50,9 +46,9 @@ public class TherapistControllerTest {
     @MockitoBean
     private CustomAuthenticationEntryPoint entryPoint;
     @MockitoBean
-    private JwtService jwtService;
+    private JwtProvider jwtService;
     @MockitoBean
-    private JwtAuthTokenService authTokenService;
+    private JwtAuthTokenProvider authTokenService;
     @MockitoBean
     private UserDetailsService userDetailsService;
 

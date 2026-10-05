@@ -37,6 +37,8 @@ public class AccountController {
                 .body(response);
     }
 
+
+    // todo those methods probably shouldn't be in account controller
     @PatchMapping("/change-password")
     public ResponseEntity<Void> changePassword(
             @Valid @RequestBody ChangePasswordRequest request,

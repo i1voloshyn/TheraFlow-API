@@ -1,6 +1,6 @@
 package com.theraflow.security;
 
-import com.theraflow.application.JwtAuthTokenService;
+import com.theraflow.application.JwtAuthTokenProvider;
 import com.theraflow.exception.model.ErrorCode;
 import com.theraflow.security.exception.AccessTokenException;
 import com.theraflow.security.exception.CustomAuthenticationEntryPoint;
@@ -27,7 +27,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String BEARER_PREFIX = "Bearer ";
 
-    private final JwtAuthTokenService jwtAuthService;
+    private final JwtAuthTokenProvider jwtAuthService;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     @Override

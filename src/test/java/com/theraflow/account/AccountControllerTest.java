@@ -3,7 +3,7 @@ package com.theraflow.account;
 import com.theraflow.account.dto.AccountRequest;
 import com.theraflow.account.dto.AccountResponse;
 import com.theraflow.account.model.AccountType;
-import com.theraflow.application.JwtAuthTokenService;
+import com.theraflow.application.JwtAuthTokenProvider;
 import com.theraflow.exception.InvalidCredentialsException;
 import com.theraflow.exception.model.ErrorCode;
 import com.theraflow.security.JwtAuthenticationFilter;
@@ -56,7 +56,7 @@ class AccountControllerTest {
     private AccountService accountService;
 
     @MockitoBean
-    private JwtAuthTokenService jwtAuthenticationService;
+    private JwtAuthTokenProvider jwtAuthenticationService;
 
     @MockitoBean
     private UserDetailsService userDetailsService;

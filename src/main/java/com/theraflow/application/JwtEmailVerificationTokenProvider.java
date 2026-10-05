@@ -9,9 +9,9 @@ import java.time.Duration;
 
 @RequiredArgsConstructor
 @Component
-public class JwtEmailVerificationTokenService {
+public class JwtEmailVerificationTokenProvider {
 
-    private final JwtService jwtService;
+    private final JwtProvider jwtService;
 
     @Value("${app.security.jwt.email.secret}")
     private String secret;

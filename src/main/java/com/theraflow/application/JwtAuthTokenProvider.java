@@ -14,11 +14,11 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class JwtAuthTokenService {
+public class JwtAuthTokenProvider {
     private static final String VERIFIED_CLAIM = "verified";
     private static final String ACCOUNT_TYPE_CLAIM = "account_type";
 
-    private final JwtService jwtService;
+    private final JwtProvider jwtService;
 
     @Value("${app.security.jwt.access.secret}")
     private String accessSecret;

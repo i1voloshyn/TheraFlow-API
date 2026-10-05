@@ -1,4 +1,4 @@
-package com.theraflow.authentication.model;
+package com.theraflow.authentication.dto;
 
 import jakarta.validation.constraints.Email;
 import org.jspecify.annotations.NonNull;
