@@ -78,5 +78,5 @@ CREATE TABLE password_reset_tokens
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     constraint pk_password_reset_token PRIMARY KEY (id),
-    constraint fk_password_reset_token_account FOREIGN KEY (account_id) REFERENCES accounts (id) ON
+    constraint fk_password_reset_token_account FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE CASCADE
 );

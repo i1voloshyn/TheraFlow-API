@@ -1,6 +1,5 @@
 package com.theraflow.authentication;
 
-import com.theraflow.application.refreshToken.UuidTokenProvider;
 import com.theraflow.authentication.dto.JwtPair;
 import com.theraflow.authentication.dto.LoginRequest;
 import com.theraflow.authentication.dto.PasswordResetRequest;
@@ -37,10 +36,10 @@ public class AuthenticationController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<String> requestPasswordReset(
+    public ResponseEntity<String> forgotPassword(
             @Valid @RequestBody PasswordResetRequest request
     ) {
-        // Implement password reset logic here
+        authenticationService.requestPasswordReset(request.email());
         return ResponseEntity.ok().body("If the email is registered, you'll get a reset link");
     }
 }

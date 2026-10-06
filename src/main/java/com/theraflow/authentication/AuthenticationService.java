@@ -9,12 +9,15 @@ import com.theraflow.application.refreshToken.UuidTokenProvider;
 import com.theraflow.authentication.dto.JwtPair;
 import com.theraflow.authentication.dto.LoginRequest;
 import com.theraflow.authentication.model.PasswordResetToken;
+import com.theraflow.event.PasswordResetEmailListener;
+import com.theraflow.event.PasswordResetRequest;
 import com.theraflow.exception.EntityNotFoundException;
 import com.theraflow.exception.PermissionException;
 import com.theraflow.exception.TheraflowApiException;
 import com.theraflow.exception.model.ErrorCode;
 import com.theraflow.security.model.TheraflowUser;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -38,6 +41,7 @@ public class AuthenticationService {
     private final UuidTokenProvider uuidTokenProvider;
     private final AccountRepository accountRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final ApplicationEventPublisher eventPublisher;
     private final Clock clock;
 
     @Transactional
@@ -71,6 +75,11 @@ public class AuthenticationService {
 
         PasswordResetToken resetToken = uuidTokenProvider.buildPasswordResetToken(rawResetToken);
         account.get().setPasswordResetToken(resetToken);
+
+        eventPublisher.publishEvent(new PasswordResetRequest(
+                email,
+                rawResetToken
+        ));
     }
 
     // todo: Add tests

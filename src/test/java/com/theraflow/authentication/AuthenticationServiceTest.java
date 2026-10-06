@@ -9,6 +9,8 @@ import com.theraflow.application.refreshToken.RefreshTokenRepository;
 import com.theraflow.application.refreshToken.UuidTokenProvider;
 import com.theraflow.authentication.dto.JwtPair;
 import com.theraflow.authentication.dto.LoginRequest;
+import com.theraflow.authentication.model.PasswordResetToken;
+import com.theraflow.event.PasswordResetRequest;
 import com.theraflow.exception.InvalidCredentialsException;
 import com.theraflow.exception.PermissionException;
 import com.theraflow.exception.TheraflowApiException;
@@ -21,6 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -44,6 +47,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AuthenticationServiceTest {
     private static final UUID ACCOUNT_ID = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
+    private static final UUID RANDOM_UUID = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
 
     private final Clock clock = Clock.systemUTC();
 
@@ -65,9 +69,13 @@ class AuthenticationServiceTest {
     @Mock
     private AccountRepository accountRepository;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     @InjectMocks
     private AuthenticationService authenticationService;
 
+    @DisplayName("Should return a valid JwtPair for valid credentials")
     @Test
     void authenticate_success() {
         LoginRequest request = loginRequest();
@@ -109,7 +117,7 @@ class AuthenticationServiceTest {
         assertThat(account.getRefreshTokens()).containsExactly(expectedRefreshToken);
     }
 
-    @DisplayName("Should throw PermissionException for account with unverified email status ")
+    @DisplayName("Should throw a PermissionException for an account with an unverified email status")
     @Test
     void authenticate_throwsException1() {
         LoginRequest request = loginRequest();
@@ -127,10 +135,10 @@ class AuthenticationServiceTest {
         verifyNoInteractions(jwtAuthTokenProvider, uuidTokenProvider);
     }
 
-    @DisplayName("Should throw InvalidCredentialsException for invalid credentials")
+    @DisplayName("Should throw an InvalidCredentialsException for a request with an incorrect email")
     @Test
     void authenticate_throwsException2() {
-        LoginRequest invalidRequest = loginRequest();
+        LoginRequest invalidRequest = loginRequestWithBadEmail();
         doThrow(new InvalidCredentialsException(ErrorCode.AUTHENTICATION_FAILED))
                 .when(authenticationManager).authenticate(
                         new UsernamePasswordAuthenticationToken(invalidRequest.email(),
@@ -167,8 +175,61 @@ class AuthenticationServiceTest {
         verifyNoInteractions(accountRepository, jwtAuthTokenProvider, authenticationManager);
     }
 
+    @DisplayName("""
+            SHOULD NOT create a token
+            AND SHOULD NOT send an email
+            WHEN the email does not exist in the database
+            """)
+    @Test
+    public void requestPasswordReset_doNothing() {
+        String nonExistentEmail = "wrong-email";
+
+        when(accountRepository.findAccountByEmail(nonExistentEmail)).thenReturn(Optional.empty());
+
+        authenticationService.requestPasswordReset(nonExistentEmail);
+
+        verifyNoInteractions(uuidSupplier, uuidTokenProvider, eventPublisher);
+    }
+
+    @DisplayName("""
+            SHOULD create resetToken
+            AND SHOULD send an email
+            WHEN the email exists in the database
+            """)
+    @Test
+    public void requestPasswordReset_success() {
+        Account account = new Account();
+        String existingEmail = "valid-email";
+        String rawResetToken = RANDOM_UUID.toString();
+        PasswordResetToken resetToken = new PasswordResetToken("token-hash",
+                clock.instant().plusSeconds(3600));
+
+        PasswordResetRequest resetEventRequest = new PasswordResetRequest(
+                existingEmail,
+                rawResetToken
+        );
+
+        when(accountRepository.findAccountByEmail(existingEmail)).thenReturn(Optional.of(account));
+        when(uuidSupplier.get()).thenReturn(RANDOM_UUID);
+        when(uuidTokenProvider.buildPasswordResetToken(rawResetToken)).thenReturn(resetToken);
+
+        authenticationService.requestPasswordReset(existingEmail);
+
+        verify(accountRepository).findAccountByEmail(existingEmail);
+        verify(uuidSupplier).get();
+        verify(uuidTokenProvider).buildPasswordResetToken(rawResetToken);
+        verify(eventPublisher).publishEvent(resetEventRequest);
+
+        assertThat(account.getPasswordResetTokens())
+                .containsExactly(resetToken);
+    }
+
 
     private LoginRequest loginRequest() {
+        return new LoginRequest("valid-email", "valid-password");
+    }
+
+    private LoginRequest loginRequestWithBadEmail() {
         return new LoginRequest("valid-email", "valid-password");
     }
 
