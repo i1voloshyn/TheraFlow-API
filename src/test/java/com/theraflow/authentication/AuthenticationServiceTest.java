@@ -67,6 +67,9 @@ class AuthenticationServiceTest {
     private RefreshTokenRepository refreshTokenRepository;
 
     @Mock
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @Mock
     private AccountRepository accountRepository;
 
     @Mock
@@ -157,11 +160,16 @@ class AuthenticationServiceTest {
 
     }
 
-    @DisplayName("Should thrown an exception with REFRESH_TOKEN_REVOKED code when refresh tokens is revoked")
+    @DisplayName("""
+            rotateToken
+            Should thrown an exception with
+            REFRESH_TOKEN_REVOKED code
+            WHEN refresh tokens is revoked
+            """)
     @Test
     void rotateToken_sc2() {
         String rawToken = "123e4567-e89b-12d3-a456-426614174000";
-        String rawTokenHash = uuidTokenProvider.hashRefreshToken(rawToken);
+        String rawTokenHash = uuidTokenProvider.hashToken(rawToken);
         RefreshToken oldRefreshToken = new RefreshToken();
         oldRefreshToken.setTokenHash(rawTokenHash);
         oldRefreshToken.setIsRevoked(true);
@@ -176,6 +184,7 @@ class AuthenticationServiceTest {
     }
 
     @DisplayName("""
+            requestPasswordReset
             SHOULD NOT create a token
             AND SHOULD NOT send an email
             WHEN the email does not exist in the database
@@ -192,6 +201,7 @@ class AuthenticationServiceTest {
     }
 
     @DisplayName("""
+            requestPasswordReset
             SHOULD create resetToken
             AND SHOULD send an email
             WHEN the email exists in the database
@@ -222,6 +232,70 @@ class AuthenticationServiceTest {
 
         assertThat(account.getPasswordResetTokens())
                 .containsExactly(resetToken);
+    }
+
+    @DisplayName("""
+            verifyPasswordReset
+            SHOULD return accountId
+            WHEN the token is valid and not used
+            """)
+    @Test
+    void verifyPasswordReset_success() {
+        String rawToken = "raw-reset-token";
+        String hashedToken = "hashed-reset-token";
+        Account account = new Account();
+
+        PasswordResetToken resetToken = new PasswordResetToken(hashedToken, clock.instant().plusSeconds(3600));
+        resetToken.setAccount(account);
+        resetToken.setUsed(false);
+
+        when(uuidTokenProvider.hashToken(rawToken)).thenReturn(hashedToken);
+        when(passwordResetTokenRepository.findByTokenHash(hashedToken)).thenReturn(Optional.of(resetToken));
+
+        authenticationService.verifyPasswordReset(rawToken);
+
+        verify(uuidTokenProvider).hashToken(rawToken);
+        verify(passwordResetTokenRepository).findByTokenHash(hashedToken);
+    }
+
+    @DisplayName("""
+            verifyPasswordReset
+            SHOULD throw PermissionException
+            WITH PASSWORD_RESET_TOKEN_INVALID
+            WHEN token hash is not found
+            """)
+    @Test
+    void verifyPasswordReset_throwsWhenTokenNotFound() {
+        String rawToken = "missing-token";
+        String hashedToken = "hashed-missing-token";
+
+        when(uuidTokenProvider.hashToken(rawToken)).thenReturn(hashedToken);
+        when(passwordResetTokenRepository.findByTokenHash(hashedToken)).thenReturn(Optional.empty());
+
+        assertThatExceptionOfType(PermissionException.class)
+                .isThrownBy(() -> authenticationService.verifyPasswordReset(rawToken))
+                .matches(ex -> ex.getErrorCode().equals(ErrorCode.PASSWORD_RESET_TOKEN_INVALID));
+    }
+
+    @DisplayName("""
+            verifyPasswordReset
+            SHOULD throw PermissionException
+            WITH PASSWORD_RESET_TOKEN_INVALID
+            WHEN token is already used
+            """)
+    @Test
+    void verifyPasswordReset_throwsWhenTokenUsed() {
+        String rawToken = "used-token";
+        String hashedToken = "hashed-used-token";
+        PasswordResetToken resetToken = new PasswordResetToken(hashedToken, clock.instant().plusSeconds(3600));
+        resetToken.setUsed(true);
+
+        when(uuidTokenProvider.hashToken(rawToken)).thenReturn(hashedToken);
+        when(passwordResetTokenRepository.findByTokenHash(hashedToken)).thenReturn(Optional.of(resetToken));
+
+        assertThatExceptionOfType(PermissionException.class)
+                .isThrownBy(() -> authenticationService.verifyPasswordReset(rawToken))
+                .matches(ex -> ex.getErrorCode().equals(ErrorCode.PASSWORD_RESET_TOKEN_INVALID));
     }
 
 

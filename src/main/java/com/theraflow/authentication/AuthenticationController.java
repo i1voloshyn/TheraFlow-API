@@ -7,10 +7,14 @@ import com.theraflow.authentication.dto.TokenRotateRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @RestController
@@ -35,11 +39,19 @@ public class AuthenticationController {
         return ResponseEntity.ok(tokens);
     }
 
-    @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(
+    @PostMapping("/password-reset")
+    public ResponseEntity<String> requestPasswordReset(
             @Valid @RequestBody PasswordResetRequest request
     ) {
         authenticationService.requestPasswordReset(request.email());
         return ResponseEntity.ok().body("If the email is registered, you'll get a reset link");
+    }
+
+    @GetMapping("/password-reset")
+    public ResponseEntity<UUID> verifyPasswordResetToken(
+            @RequestParam("token") String token
+    ) {
+        UUID accountId = authenticationService.verifyPasswordReset(token);
+        return ResponseEntity.ok().body(accountId);
     }
 }

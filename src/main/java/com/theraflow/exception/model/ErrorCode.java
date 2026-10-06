@@ -22,6 +22,11 @@ public enum ErrorCode{
             "Password does not meet security requirements. Use at least 10 characters with uppercase, lowercase, numbers, and symbols"),
 
     // ========== Access Errors ==========
+    PASSWORD_RESET_TOKEN_INVALID(
+            HttpStatus.UNAUTHORIZED,
+            "Invalid password reset token.",
+            "The password reset link is invalid or has expired. Please request a new password reset link."),
+
     EMAIL_VERIFICATION_LINK_EXPIRED(
             HttpStatus.UNAUTHORIZED,
             "Email verification link expired",

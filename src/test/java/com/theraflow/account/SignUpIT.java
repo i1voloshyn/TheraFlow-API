@@ -6,7 +6,6 @@ import com.icegreen.greenmail.util.ServerSetupTest;
 import com.theraflow.TestcontainersConfiguration;
 import com.theraflow.account.dto.AccountRequest;
 import com.theraflow.account.dto.AccountResponse;
-import com.theraflow.account.dto.SignUpResponse;
 import com.theraflow.account.model.AccountType;
 import com.theraflow.exception.model.ErrorCode;
 import com.theraflow.exception.model.ErrorResponse;

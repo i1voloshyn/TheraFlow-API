@@ -1,6 +1,5 @@
 package com.theraflow.application.refreshToken;
 
-import com.theraflow.authentication.dto.PasswordResetRequest;
 import com.theraflow.authentication.model.PasswordResetToken;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,13 +24,13 @@ public class UuidTokenProvider {
     private Duration passwordResetTokenExpiration;
 
     public RefreshToken buildRefreshToken(String rawToken) {
-        String tokenHash = hashRefreshToken(rawToken);
+        String tokenHash = hashToken(rawToken);
 
         return new RefreshToken(tokenHash, getExpiration(refreshTokenExpiration));
     }
 
     public PasswordResetToken buildPasswordResetToken(String rawToken) {
-        String tokenHash = hashRefreshToken(rawToken);
+        String tokenHash = hashToken(rawToken);
 
         return new PasswordResetToken(tokenHash, getExpiration(passwordResetTokenExpiration));
     }
@@ -42,7 +41,7 @@ public class UuidTokenProvider {
     }
 
 
-    public String hashRefreshToken(String token) {
+    public String hashToken(String token) {
         try {
             MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
             byte[] bytes = messageDigest.digest(token.getBytes(StandardCharsets.UTF_8));

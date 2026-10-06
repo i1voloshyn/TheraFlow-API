@@ -9,7 +9,6 @@ import com.theraflow.application.refreshToken.UuidTokenProvider;
 import com.theraflow.authentication.dto.JwtPair;
 import com.theraflow.authentication.dto.LoginRequest;
 import com.theraflow.authentication.model.PasswordResetToken;
-import com.theraflow.event.PasswordResetEmailListener;
 import com.theraflow.event.PasswordResetRequest;
 import com.theraflow.exception.EntityNotFoundException;
 import com.theraflow.exception.PermissionException;
@@ -41,6 +40,7 @@ public class AuthenticationService {
     private final UuidTokenProvider uuidTokenProvider;
     private final AccountRepository accountRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final Clock clock;
 
@@ -82,10 +82,24 @@ public class AuthenticationService {
         ));
     }
 
+    @Transactional(readOnly = true)
+    public UUID verifyPasswordReset(String token) {
+        String tokenHash = uuidTokenProvider.hashToken(token);
+        PasswordResetToken resetToken = passwordResetTokenRepository
+                .findByTokenHash(tokenHash)
+                .orElseThrow(() -> new PermissionException(ErrorCode.PASSWORD_RESET_TOKEN_INVALID));
+
+        if (resetToken.isUsed()) {
+            throw new PermissionException(ErrorCode.PASSWORD_RESET_TOKEN_INVALID);
+        }
+
+        return resetToken.getAccount().getId();
+    }
+
     // todo: Add tests
     @Transactional
     public JwtPair rotateTokens(String rawRefreshToken) {
-        String tokenHash = uuidTokenProvider.hashRefreshToken(rawRefreshToken);
+        String tokenHash = uuidTokenProvider.hashToken(rawRefreshToken);
         RefreshToken oldRefreshToken = refreshTokenRepository.findByTokenHash(tokenHash)
                 .orElseThrow(() -> new AuthenticationServiceException("Invalid refresh tokens")); //todo own exception
 

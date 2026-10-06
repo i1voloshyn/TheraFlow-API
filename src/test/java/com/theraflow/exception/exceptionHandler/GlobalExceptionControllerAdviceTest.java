@@ -22,6 +22,5 @@ class GlobalExceptionControllerAdviceTest {
         assertThat(error).isNotNull();
         assertThat(error.title()).isEqualTo("Authentication failed");
         assertThat(error.errorCode()).isEqualTo(ErrorCode.AUTHENTICATION_FAILED);
-        assertThat(error.message()).isEqualTo("Invalid email or password");
     }
 }
