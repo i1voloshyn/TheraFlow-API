@@ -22,9 +22,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -49,7 +51,8 @@ class AuthenticationServiceTest {
     private static final UUID ACCOUNT_ID = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
     private static final UUID RANDOM_UUID = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
 
-    private final Clock clock = Clock.systemUTC();
+    @Spy
+    private Clock clock = Clock.systemUTC();
 
     @Mock
     private AuthenticationManager authenticationManager;
@@ -154,10 +157,24 @@ class AuthenticationServiceTest {
         verifyNoInteractions(jwtAuthTokenProvider, uuidTokenProvider, accountRepository);
     }
 
-    @DisplayName("Should thrown an exception when refresh tokens is expired")
+    @DisplayName("Should throw an exception when refresh tokens is expired")
     @Test
-    void rotateToken_sc1() {
+    void rotateToken_throwsWhenTokenExpired() {
+        String rawToken = "123e4567-e89b-12d3-a456-426614174000";
+        String rawTokenHash = "hashed-expired-refresh-token";
+        RefreshToken oldRefreshToken = new RefreshToken();
+        oldRefreshToken.setTokenHash(rawTokenHash);
+        oldRefreshToken.setIsRevoked(false);
+        oldRefreshToken.setExpiresAt(clock.instant().minusSeconds(1));
 
+        when(uuidTokenProvider.hashToken(rawToken)).thenReturn(rawTokenHash);
+        when(refreshTokenRepository.findByTokenHash(rawTokenHash)).thenReturn(Optional.of(oldRefreshToken));
+
+        assertThatExceptionOfType(PermissionException.class)
+                .isThrownBy(() -> authenticationService.rotateTokens(rawToken))
+                .matches(ex -> ex.getErrorCode().equals(ErrorCode.REFRESH_TOKEN_EXPIRED));
+
+        verifyNoInteractions(accountRepository, jwtAuthTokenProvider, authenticationManager);
     }
 
     @DisplayName("""
@@ -167,7 +184,7 @@ class AuthenticationServiceTest {
             WHEN refresh tokens is revoked
             """)
     @Test
-    void rotateToken_sc2() {
+    void rotateToken_throwsWhenTokenRevoked() {
         String rawToken = "123e4567-e89b-12d3-a456-426614174000";
         String rawTokenHash = uuidTokenProvider.hashToken(rawToken);
         RefreshToken oldRefreshToken = new RefreshToken();

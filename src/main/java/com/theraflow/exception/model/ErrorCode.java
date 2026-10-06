@@ -4,7 +4,7 @@ import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 @Getter
-public enum ErrorCode{
+public enum ErrorCode {
     // ========== Authentication & Authorization ==========
     AUTHENTICATION_FAILED(
             HttpStatus.UNAUTHORIZED,
@@ -46,6 +46,12 @@ public enum ErrorCode{
             HttpStatus.UNAUTHORIZED,
             "Token expired",
             "The provided tokens has expired. Please log in again or use a refresh tokens to obtain a new one"),
+
+    REFRESH_TOKEN_EXPIRED(
+            HttpStatus.UNAUTHORIZED,
+            "Token expired",
+            "The provided refresh token has expired. Please log in again"
+    ),
 
     REFRESH_TOKEN_REVOKED(
             HttpStatus.UNAUTHORIZED,

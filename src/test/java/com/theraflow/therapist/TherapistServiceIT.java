@@ -6,7 +6,6 @@ import com.theraflow.therapist.dto.AddressRequest;
 import com.theraflow.therapist.dto.ProfileDetailsResponse;
 import com.theraflow.therapist.dto.TherapistRequest;
 import com.theraflow.therapist.dto.TherapistResponse;
-import com.theraflow.exception.EntityNotFoundException;
 import com.theraflow.therapist.about.About;
 import com.theraflow.account.model.Account;
 import com.theraflow.account.model.AccountType;
@@ -30,14 +29,13 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @DataJpaTest(properties = "spring.jpa.hibernate.ddl-auto=none")
 @Import({TestcontainersConfiguration.class,
         TherapistService.class,
         DtoTherapistMapper.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class TherapistServiceTest {
+class TherapistServiceIT {
 
     @Autowired
     private AccountRepository accountRepository;

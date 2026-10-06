@@ -108,7 +108,7 @@ public class AuthenticationService {
         }
 
         if (oldRefreshToken.getExpiresAt().isBefore(clock.instant())) {
-            throw new AuthenticationServiceException("Refresh tokens has expired");  //todo own exception
+            throw new PermissionException(ErrorCode.REFRESH_TOKEN_EXPIRED);
         }
 
         UUID accountId = Objects.requireNonNull(oldRefreshToken.getAccount().getId());
