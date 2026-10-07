@@ -7,7 +7,9 @@ import com.theraflow.TestcontainersConfiguration;
 import com.theraflow.account.AccountRepository;
 import com.theraflow.account.model.Account;
 import com.theraflow.account.model.AccountType;
+import com.theraflow.application.refreshToken.UuidTokenProvider;
 import com.theraflow.authentication.dto.PasswordResetRequest;
+import com.theraflow.authentication.model.PasswordResetToken;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.AfterEach;
@@ -20,6 +22,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.client.RestTestClient;
+
+import java.time.Clock;
+import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -41,6 +46,12 @@ public class PasswordResetIT {
 
     @Autowired
     PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @Autowired
+    UuidTokenProvider uuidTokenProvider;
+
+    @Autowired
+    Clock clock;
 
     @AfterEach
     void cleanDatabase() {
@@ -111,6 +122,85 @@ public class PasswordResetIT {
                 .isEmpty();
     }
 
+    @DisplayName("""
+            verifyPasswordReset
+            WHEN token is valid, not used and not expired
+            RETURN HttpStatus 200 with an empty body
+            """)
+    @Test
+    void verifyPasswordReset_success() {
+        Account account = saveTestAccount();
+        String rawToken = "valid-raw-token";
+        saveResetToken(account, rawToken, clock.instant().plusSeconds(3600), false);
+
+        verifyPasswordReset(rawToken)
+                .expectStatus()
+                .isOk()
+                .expectBody()
+                .isEmpty();
+    }
+
+    @DisplayName("""
+            verifyPasswordReset
+            WHEN token does not exist
+            RETURN HttpStatus 401
+            """)
+    @Test
+    void verifyPasswordReset_unknownToken() {
+        saveTestAccount();
+
+        verifyPasswordReset("unknown-token")
+                .expectStatus()
+                .isUnauthorized();
+    }
+
+    @DisplayName("""
+            verifyPasswordReset
+            WHEN token is expired
+            RETURN HttpStatus 401
+            """)
+    @Test
+    void verifyPasswordReset_expiredToken() {
+        Account account = saveTestAccount();
+        String rawToken = "expired-raw-token";
+        saveResetToken(account, rawToken, clock.instant().minusSeconds(60), false);
+
+        verifyPasswordReset(rawToken)
+                .expectStatus()
+                .isUnauthorized();
+    }
+
+    @DisplayName("""
+            verifyPasswordReset
+            WHEN token is already used
+            RETURN HttpStatus 401
+            """)
+    @Test
+    void verifyPasswordReset_usedToken() {
+        Account account = saveTestAccount();
+        String rawToken = "used-raw-token";
+        saveResetToken(account, rawToken, clock.instant().plusSeconds(3600), true);
+
+        verifyPasswordReset(rawToken)
+                .expectStatus()
+                .isUnauthorized();
+    }
+
+    private RestTestClient.ResponseSpec verifyPasswordReset(String rawToken) {
+        return restTestClient.get()
+                .uri(PASSWORD_RESET_PATH + "?token={token}", rawToken)
+                .exchange();
+    }
+
+    private void saveResetToken(Account account, String rawToken, Instant expiresAt, boolean used) {
+        PasswordResetToken token = new PasswordResetToken(
+                uuidTokenProvider.hashToken(rawToken),
+                expiresAt);
+        token.setAccount(account);
+        token.setUsed(used);
+        passwordResetTokenRepository.save(token);
+    }
+
     private RestTestClient.ResponseSpec requestPasswordReset(String email) {
         PasswordResetRequest request = new PasswordResetRequest(email);
         return restTestClient.post()
@@ -119,13 +209,13 @@ public class PasswordResetIT {
                 .exchange();
     }
 
-    private void saveTestAccount() {
+    private Account saveTestAccount() {
         Account account = Account.builder()
                 .passwordHash("password-hash")
                 .email(ACCOUNT_EMAIL)
                 .type(AccountType.THERAPIST)
                 .build();
 
-        accountRepository.save(account);
+        return accountRepository.save(account);
     }
 }

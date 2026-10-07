@@ -42,6 +42,7 @@ public class SecurityConfiguration {
                 .logout(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> {
                             auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
+                                    .requestMatchers(HttpMethod.GET, "/api/v1/auth/password-reset").permitAll()
                                     .requestMatchers(HttpMethod.POST, "/api/v1/accounts").permitAll();
 
                             auth.requestMatchers("/api/v1/therapist")
