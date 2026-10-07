@@ -2,10 +2,10 @@ spring:
   application:
     name: TheraFlow
 
-
   jpa:
     hibernate:
       ddl-auto: validate
+    show-sql: true
 
   jackson:
     default-property-inclusion: non_null
