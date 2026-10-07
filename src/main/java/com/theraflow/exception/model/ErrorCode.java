@@ -16,6 +16,12 @@ public enum ErrorCode {
             "Password incorrect",
             "The provided password does not match your current password"),
 
+    PASSWORD_NOT_MATCH(
+            HttpStatus.BAD_REQUEST,
+            "Password not match",
+            "The new password and confirm password do not match"
+    ),
+
     PASSWORD_WEAK(
             HttpStatus.BAD_REQUEST,
             "Password weak",

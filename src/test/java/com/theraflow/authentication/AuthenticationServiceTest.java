@@ -7,6 +7,7 @@ import com.theraflow.application.JwtAuthTokenProvider;
 import com.theraflow.application.refreshToken.RefreshToken;
 import com.theraflow.application.refreshToken.RefreshTokenRepository;
 import com.theraflow.application.refreshToken.UuidTokenProvider;
+import com.theraflow.authentication.dto.ConfirmPasswordResetRequest;
 import com.theraflow.authentication.dto.JwtPair;
 import com.theraflow.authentication.dto.LoginRequest;
 import com.theraflow.authentication.model.PasswordResetToken;
@@ -16,6 +17,7 @@ import com.theraflow.exception.PermissionException;
 import com.theraflow.exception.TheraflowApiException;
 import com.theraflow.exception.model.ErrorCode;
 import com.theraflow.security.model.TheraflowUser;
+import com.theraflow.util.PasswordValidator;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,6 +32,7 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Clock;
 import java.util.Collection;
@@ -77,6 +80,12 @@ class AuthenticationServiceTest {
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
+
+    @Mock
+    private PasswordValidator passwordValidator;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private AuthenticationService authenticationService;
@@ -253,7 +262,7 @@ class AuthenticationServiceTest {
 
     @DisplayName("""
             verifyPasswordReset
-            SHOULD return accountId
+            SHOULD validate token
             WHEN the token is valid and not used
             """)
     @Test
@@ -273,6 +282,90 @@ class AuthenticationServiceTest {
 
         verify(uuidTokenProvider).hashToken(rawToken);
         verify(passwordResetTokenRepository).findByTokenHash(hashedToken);
+    }
+
+    @DisplayName("""
+            confirmPasswordReset
+            SHOULD update password and mark token used
+            WHEN token is valid and passwords match
+            """)
+    @Test
+    void confirmPasswordReset_success() {
+        String rawToken = "raw-reset-token";
+        String hashedToken = "hashed-reset-token";
+        String newPassword = "new-password";
+        String encodedPassword = "encoded-password";
+        Account account = Account.builder()
+                .passwordHash("old-password-hash")
+                .build();
+        PasswordResetToken resetToken = new PasswordResetToken(hashedToken, clock.instant().plusSeconds(3600));
+        resetToken.setAccount(account);
+        resetToken.setUsed(false);
+        ConfirmPasswordResetRequest request = new ConfirmPasswordResetRequest(rawToken, newPassword, newPassword);
+
+        when(uuidTokenProvider.hashToken(rawToken)).thenReturn(hashedToken);
+        when(passwordResetTokenRepository.findByTokenHash(hashedToken)).thenReturn(Optional.of(resetToken));
+        when(passwordEncoder.encode(newPassword)).thenReturn(encodedPassword);
+
+        authenticationService.confirmPasswordReset(request);
+
+        verify(passwordValidator).validate(newPassword);
+        verify(passwordEncoder).encode(newPassword);
+        assertThat(account.getPasswordHash()).isEqualTo(encodedPassword);
+        assertThat(resetToken.isUsed()).isTrue();
+    }
+
+    @DisplayName("""
+            confirmPasswordReset
+            SHOULD throw PermissionException
+            WITH PASSWORD_NOT_MATCH
+            WHEN passwords are different
+            """)
+    @Test
+    void confirmPasswordReset_throwsWhenPasswordsDoNotMatch() {
+        String rawToken = "raw-reset-token";
+        ConfirmPasswordResetRequest request = new ConfirmPasswordResetRequest(
+                rawToken,
+                "new-password",
+                "different-password"
+        );
+
+        assertThatExceptionOfType(PermissionException.class)
+                .isThrownBy(() -> authenticationService.confirmPasswordReset(request))
+                .matches(ex -> ex.getErrorCode().equals(ErrorCode.PASSWORD_NOT_MATCH));
+
+        verify(passwordValidator).validate("new-password");
+        verifyNoInteractions(uuidTokenProvider, passwordResetTokenRepository, passwordEncoder);
+    }
+
+    @DisplayName("""
+            confirmPasswordReset
+            SHOULD throw PermissionException
+            WITH PASSWORD_RESET_TOKEN_INVALID
+            WHEN token is expired
+            """)
+    @Test
+    void confirmPasswordReset_throwsWhenTokenExpired() {
+        String rawToken = "expired-token";
+        String hashedToken = "hashed-expired-token";
+        String newPassword = "new-password";
+        PasswordResetToken expiredResetToken = new PasswordResetToken(
+                hashedToken,
+                clock.instant().minusSeconds(1)
+        );
+        ConfirmPasswordResetRequest request = new ConfirmPasswordResetRequest(rawToken, newPassword, newPassword);
+
+        when(uuidTokenProvider.hashToken(rawToken)).thenReturn(hashedToken);
+        when(passwordResetTokenRepository.findByTokenHash(hashedToken)).thenReturn(Optional.of(expiredResetToken));
+
+        assertThatExceptionOfType(PermissionException.class)
+                .isThrownBy(() -> authenticationService.confirmPasswordReset(request))
+                .matches(ex -> ex.getErrorCode().equals(ErrorCode.PASSWORD_RESET_TOKEN_INVALID));
+
+        verify(passwordValidator).validate(newPassword);
+        verify(uuidTokenProvider).hashToken(rawToken);
+        verify(passwordResetTokenRepository).findByTokenHash(hashedToken);
+        verifyNoInteractions(passwordEncoder);
     }
 
     @DisplayName("""

@@ -1,5 +1,6 @@
 package com.theraflow.authentication;
 
+import com.theraflow.authentication.dto.ConfirmPasswordResetRequest;
 import com.theraflow.authentication.dto.JwtPair;
 import com.theraflow.authentication.dto.LoginRequest;
 import com.theraflow.authentication.dto.PasswordResetRequest;
@@ -13,8 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.UUID;
 
 @RequiredArgsConstructor
 @RestController
@@ -32,7 +31,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<JwtPair> refreshToken(
+    public ResponseEntity<JwtPair> rotateTokens(
             @RequestBody TokenRotateRequest request
     ) {
         JwtPair tokens = authenticationService.rotateTokens(request.refreshToken());
@@ -48,10 +47,18 @@ public class AuthenticationController {
     }
 
     @GetMapping("/password-reset")
-    public ResponseEntity<UUID> verifyPasswordResetToken(
+    public ResponseEntity<Void> verifyPasswordResetToken(
             @RequestParam("token") String token
     ) {
-        UUID accountId = authenticationService.verifyPasswordReset(token);
-        return ResponseEntity.ok().body(accountId);
+        authenticationService.verifyPasswordReset(token);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/password-reset/confirm")
+    public ResponseEntity<?> confirmPasswordReset(
+            @Valid @RequestBody ConfirmPasswordResetRequest request
+    ) {
+        authenticationService.confirmPasswordReset(request);
+        return ResponseEntity.ok().body("Password reset successful");
     }
 }

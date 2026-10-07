@@ -146,7 +146,7 @@ class AccountControllerTest {
         );
 
         mockMvc.perform(get("/api/v1/accounts/verify-email")
-                        .param("tokens", token)
+                        .param("token", token)
                         .with(user(user)))
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
