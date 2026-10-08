@@ -6,7 +6,7 @@ import com.theraflow.therapist.dto.ProfileDetailsResponse;
 import com.theraflow.therapist.dto.TherapistRequest;
 import com.theraflow.therapist.dto.TherapistResponse;
 import com.theraflow.therapist.about.About;
-import com.theraflow.account.model.Account;
+import com.theraflow.authentication.model.Account;
 import com.theraflow.therapist.about.Address;
 import org.springframework.stereotype.Component;
 

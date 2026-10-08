@@ -1,9 +1,9 @@
-package com.theraflow.account;
+package com.theraflow.authentication;
 
-import com.theraflow.account.dto.AccountRequest;
-import com.theraflow.account.dto.AccountResponse;
-import com.theraflow.account.model.AccountType;
 import com.theraflow.application.JwtAuthTokenProvider;
+import com.theraflow.authentication.dto.AccountRequest;
+import com.theraflow.authentication.dto.AccountResponse;
+import com.theraflow.authentication.model.AccountType;
 import com.theraflow.exception.InvalidCredentialsException;
 import com.theraflow.exception.model.ErrorCode;
 import com.theraflow.security.JwtAuthenticationFilter;
@@ -42,24 +42,25 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(AccountController.class)
+@WebMvcTest(value = AuthenticationController.class)
 @Import({SecurityConfiguration.class, CustomAuthenticationEntryPoint.class, JwtAuthenticationFilter.class})
-class AccountControllerTest {
+public class AuthenticationControllerTest {
 
+    @MockitoBean
+    private AuthenticationService authenticationService;
+    @MockitoBean
+    private JwtAuthTokenProvider jwtAuthTokenProvider;
+    @MockitoBean
+    private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    @MockitoBean
+    private  JwtAuthenticationFilter jwtAuthenticationFilter;
+    @MockitoBean
+    private UserDetailsService userDetailsService;
     @Autowired
     private MockMvc mockMvc;
-
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockitoBean
-    private AccountService accountService;
-
-    @MockitoBean
-    private JwtAuthTokenProvider jwtAuthenticationService;
-
-    @MockitoBean
-    private UserDetailsService userDetailsService;
 
     @DisplayName("Should create and return new account for valid input data")
     @Test
@@ -80,9 +81,9 @@ class AccountControllerTest {
                 updatedAt
         );
 
-        when(accountService.signUp(request)).thenReturn(expected);
+        when(authenticationService.signUp(request)).thenReturn(expected);
 
-        MvcResult result = mockMvc.perform(post("/api/v1/accounts")
+        MvcResult result = mockMvc.perform(post("/api/v1/auth/sign-up")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
                         .content("""
@@ -99,13 +100,13 @@ class AccountControllerTest {
         AccountResponse actual = objectMapper.readValue(result.getResponse().getContentAsString(), AccountResponse.class);
 
         assertThat(actual).isEqualTo(expected);
-        verify(accountService).signUp(request);
+        verify(authenticationService).signUp(request);
     }
 
     @DisplayName("Should return BAD_REQUEST when registration email is invalid")
     @Test
     void signUp_error() throws Exception {
-        mockMvc.perform(post("/api/v1/accounts")
+        mockMvc.perform(post("/api/v1/auth/sign-up")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
                         .content("""
@@ -117,20 +118,21 @@ class AccountControllerTest {
                                 """)
                 )
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errorCode").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.errorCode").value(ErrorCode.VALIDATION_FAILED.name()))
                 .andExpect(jsonPath("$.params[0].name").value("email"));
 
-        verifyNoInteractions(accountService);
+        verifyNoInteractions(authenticationService);
     }
+
 
     @DisplayName("Should reject email verification for an unauthenticated account")
     @Test
     void emailVerification_error1() throws Exception {
-        mockMvc.perform(get("/api/v1/accounts/verify-email")
+        mockMvc.perform(get("/api/v1/auth/verify-email")
                         .param("access", "verification-access"))
                 .andExpect(status().isUnauthorized());
 
-        verifyNoInteractions(accountService);
+        verifyNoInteractions(authenticationService);
     }
 
     @DisplayName("Should verify email for an authenticated account")
@@ -145,13 +147,13 @@ class AccountControllerTest {
                 AccountType.THERAPIST
         );
 
-        mockMvc.perform(get("/api/v1/accounts/verify-email")
+        mockMvc.perform(get("/api/v1/auth/verify-email")
                         .param("token", token)
                         .with(user(user)))
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
 
-        verify(accountService).verifyEmail(token);
+        verify(authenticationService).verifyEmail(token);
     }
 
     @DisplayName("Should change password and return no content status when given a valid request")
@@ -170,7 +172,7 @@ class AccountControllerTest {
         String newPassword = "new-password";
         ChangePasswordRequest req = new ChangePasswordRequest(oldPassword, newPassword);
 
-        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/accounts/change-password")
+        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/auth/change-password")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -184,7 +186,7 @@ class AccountControllerTest {
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
 
-        verify(accountService).changePassword(req, user.getAccountId());
+        verify(authenticationService).changePassword(req, user.getAccountId());
     }
 
     @DisplayName("Should return 401 and InvalidAccessException with PASSWORD_INCORRECT code for wrong current password")
@@ -192,22 +194,14 @@ class AccountControllerTest {
     void changePassword_error() throws Exception {
         ErrorCode expected = ErrorCode.PASSWORD_INCORRECT;
         UUID accountId = UUID.randomUUID();
-        TheraflowUser user = new TheraflowUser(
-                accountId,
-                "valid-email",
-                "password_hash",
-                true,
-                AccountType.THERAPIST
-        );
 
         String oldPassword = "wrong-password";
         String newPassword = "new-password";
         ChangePasswordRequest req = new ChangePasswordRequest(oldPassword, newPassword);
 
-        doThrow(new InvalidCredentialsException(ErrorCode.PASSWORD_INCORRECT)).when(accountService).changePassword(req, accountId);
+        doThrow(new InvalidCredentialsException(ErrorCode.PASSWORD_INCORRECT)).when(authenticationService).changePassword(req, accountId);
 
-        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/accounts/change-password")
-                        .header("Authorization", "valid-access")
+        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/auth/change-password")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -215,12 +209,10 @@ class AccountControllerTest {
                                 "newPassword": "new-password"
                                 }
                                 """)
-                        .with(user(user))
                 )
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.errorCode").value(expected.name()));
 
-        verify(accountService).changePassword(req, accountId);
+        verify(authenticationService).changePassword(req, accountId);
     }
-
 }

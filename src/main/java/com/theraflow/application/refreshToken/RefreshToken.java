@@ -1,6 +1,6 @@
 package com.theraflow.application.refreshToken;
 
-import com.theraflow.account.model.Account;
+import com.theraflow.authentication.model.Account;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;

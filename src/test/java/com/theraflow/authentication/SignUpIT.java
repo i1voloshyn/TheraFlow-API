@@ -1,12 +1,12 @@
-package com.theraflow.account;
+package com.theraflow.authentication;
 
 import com.icegreen.greenmail.configuration.GreenMailConfiguration;
 import com.icegreen.greenmail.junit5.GreenMailExtension;
 import com.icegreen.greenmail.util.ServerSetupTest;
 import com.theraflow.TestcontainersConfiguration;
-import com.theraflow.account.dto.AccountRequest;
-import com.theraflow.account.dto.AccountResponse;
-import com.theraflow.account.model.AccountType;
+import com.theraflow.authentication.dto.AccountRequest;
+import com.theraflow.authentication.dto.AccountResponse;
+import com.theraflow.authentication.model.AccountType;
 import com.theraflow.exception.model.ErrorCode;
 import com.theraflow.exception.model.ErrorResponse;
 import jakarta.mail.MessagingException;

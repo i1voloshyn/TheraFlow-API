@@ -1,6 +1,4 @@
-package com.theraflow.account.dto;
-
-import com.theraflow.authentication.dto.JwtPair;
+package com.theraflow.authentication.dto;
 
 public record SignUpResponse(
         AccountResponse account,

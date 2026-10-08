@@ -2,7 +2,7 @@ package com.theraflow.therapist;
 
 import com.theraflow.therapist.about.About;
 import com.theraflow.therapist.about.Address;
-import com.theraflow.account.model.Account;
+import com.theraflow.authentication.model.Account;
 import com.theraflow.patient.model.Patient;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

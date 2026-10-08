@@ -1,7 +1,7 @@
 package com.theraflow.therapist;
 
 
-import com.theraflow.account.model.AccountType;
+import com.theraflow.authentication.model.AccountType;
 import com.theraflow.application.JwtAuthTokenProvider;
 import com.theraflow.application.JwtProvider;
 import com.theraflow.security.JwtAuthenticationFilter;
