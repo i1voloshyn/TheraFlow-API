@@ -1,6 +1,6 @@
-package com.theraflow.account;
+package com.theraflow.authentication;
 
-import com.theraflow.account.model.Account;
+import com.theraflow.authentication.model.Account;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

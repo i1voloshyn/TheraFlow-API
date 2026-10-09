@@ -1,7 +1,6 @@
 package com.theraflow.authentication.model;
 
 
-import com.theraflow.account.model.Account;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;

@@ -1,7 +1,6 @@
-package com.theraflow.account.model;
+package com.theraflow.authentication.model;
 
 import com.theraflow.application.refreshToken.RefreshToken;
-import com.theraflow.authentication.model.PasswordResetToken;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -1,8 +1,7 @@
 package com.theraflow.security;
 
-import com.theraflow.account.AccountRepository;
-import com.theraflow.account.model.Account;
-import com.theraflow.exception.EntityNotFoundException;
+import com.theraflow.authentication.AccountRepository;
+import com.theraflow.authentication.model.Account;
 import com.theraflow.exception.InvalidCredentialsException;
 import com.theraflow.exception.model.ErrorCode;
 import com.theraflow.security.model.TheraflowUser;

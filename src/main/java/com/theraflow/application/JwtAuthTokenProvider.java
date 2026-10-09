@@ -1,6 +1,6 @@
 package com.theraflow.application;
 
-import com.theraflow.account.model.AccountType;
+import com.theraflow.authentication.model.AccountType;
 import com.theraflow.security.model.TheraflowUser;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;

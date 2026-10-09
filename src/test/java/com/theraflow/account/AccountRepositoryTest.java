@@ -1,8 +1,9 @@
 package com.theraflow.account;
 
 import com.theraflow.TestcontainersConfiguration;
-import com.theraflow.account.model.Account;
-import com.theraflow.account.model.AccountType;
+import com.theraflow.authentication.AccountRepository;
+import com.theraflow.authentication.model.Account;
+import com.theraflow.authentication.model.AccountType;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

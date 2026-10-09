@@ -1,8 +1,8 @@
-package com.theraflow.account;
+package com.theraflow.authentication;
 
-import com.theraflow.account.model.AccountType;
-import com.theraflow.account.model.Account;
-import com.theraflow.account.dto.AccountResponse;
+import com.theraflow.authentication.model.AccountType;
+import com.theraflow.authentication.model.Account;
+import com.theraflow.authentication.dto.AccountResponse;
 import org.springframework.stereotype.Component;
 
 @Component

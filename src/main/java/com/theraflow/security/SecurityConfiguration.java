@@ -1,6 +1,6 @@
 package com.theraflow.security;
 
-import com.theraflow.account.model.AccountType;
+import com.theraflow.authentication.model.AccountType;
 import com.theraflow.security.exception.CustomAuthenticationEntryPoint;
 import com.theraflow.security.model.TheraflowUser;
 import lombok.RequiredArgsConstructor;
@@ -41,9 +41,7 @@ public class SecurityConfiguration {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> {
-                            auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
-                                    .requestMatchers(HttpMethod.GET, "/api/v1/auth/password-reset").permitAll()
-                                    .requestMatchers(HttpMethod.POST, "/api/v1/accounts").permitAll();
+                            auth.requestMatchers("/api/v1/auth/**").permitAll();
 
                             auth.requestMatchers("/api/v1/therapist")
                                     .access((authenticationSupplier, reqContext) -> {
