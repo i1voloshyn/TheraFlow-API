@@ -29,12 +29,12 @@ public enum ErrorCode {
 
     // ========== Access Errors ==========
     PASSWORD_RESET_TOKEN_INVALID(
-            HttpStatus.UNAUTHORIZED,
+            HttpStatus.BAD_REQUEST,
             "Invalid password reset token.",
             "The password reset link is invalid or has expired. Please request a new password reset link."),
 
     EMAIL_VERIFICATION_LINK_EXPIRED(
-            HttpStatus.UNAUTHORIZED,
+            HttpStatus.BAD_REQUEST,
             "Email verification link expired",
             "The email verification link has expired. Please request a new verification email"),
 
@@ -43,29 +43,29 @@ public enum ErrorCode {
             "Email not verified",
             "Verify your account before you sign in or request a verification email."),
     EMAIL_ALREADY_VERIFIED(
-            HttpStatus.UNAUTHORIZED,
+            HttpStatus.CONFLICT,
             "Email already verified",
             "The email address has already been verified. Please log in."
     ),
 
     TOKEN_INVALID(
-            HttpStatus.UNAUTHORIZED,
+            HttpStatus.BAD_REQUEST,
             "Token invalid",
             "The provided tokens is invalid or malformed. Please log in again"),
 
     TOKEN_EXPIRED(
-            HttpStatus.UNAUTHORIZED,
+            HttpStatus.BAD_REQUEST,
             "Token expired",
             "The provided tokens has expired. Please log in again or use a refresh tokens to obtain a new one"),
 
     REFRESH_TOKEN_EXPIRED(
-            HttpStatus.UNAUTHORIZED,
+            HttpStatus.BAD_REQUEST,
             "Token expired",
             "The provided refresh token has expired. Please log in again"
     ),
 
     REFRESH_TOKEN_REVOKED(
-            HttpStatus.UNAUTHORIZED,
+            HttpStatus.BAD_REQUEST,
             "Refresh tokens revoked",
             "The refresh tokens has been revoked. Please log in again"),
 

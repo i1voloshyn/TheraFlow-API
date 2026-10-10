@@ -569,7 +569,7 @@ class AuthenticationServiceTest {
         String validVerificationToken = "cc837471-3c4b-4d77-a825-c4c1cf3a1dc5";
 
         when(jwtEmailService.extractEmail(validVerificationToken))
-                .thenThrow(new ExpiredJwtException(null, null, "Token expired"));
+                .thenThrow(new PermissionException(ErrorCode.TOKEN_EXPIRED));
 
         assertThatThrownBy(() -> authenticationService.verifyEmail(validVerificationToken))
                 .isInstanceOf(InvalidCredentialsException.class)
