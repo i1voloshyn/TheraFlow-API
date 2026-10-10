@@ -97,8 +97,11 @@ public class AuthenticationService {
         Account account = accountRepository.findAccountByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.ACCOUNT_NOT_FOUND, email));
 
-        account.setEmailVerified(true);
+        if(account.getEmailVerified()) {
+            throw new PermissionException(ErrorCode.EMAIL_ALREADY_VERIFIED);
+        }
 
+        account.setEmailVerified(true);
     }
 
 

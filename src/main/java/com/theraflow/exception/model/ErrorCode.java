@@ -42,6 +42,11 @@ public enum ErrorCode {
             HttpStatus.UNAUTHORIZED,
             "Email not verified",
             "Verify your account before you sign in or request a verification email."),
+    EMAIL_ALREADY_VERIFIED(
+            HttpStatus.UNAUTHORIZED,
+            "Email already verified",
+            "The email address has already been verified. Please log in."
+    ),
 
     TOKEN_INVALID(
             HttpStatus.UNAUTHORIZED,

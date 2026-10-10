@@ -54,6 +54,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -374,11 +375,11 @@ class AuthenticationServiceTest {
         PasswordResetToken resetToken = new PasswordResetToken(hashedToken, clock.instant().plusSeconds(3600));
         resetToken.setAccount(account);
         resetToken.setUsed(false);
-        ConfirmPasswordResetRequest request = new ConfirmPasswordResetRequest(rawToken, VALID_PASSWORD, VALID_PASSWORD  );
+        ConfirmPasswordResetRequest request = new ConfirmPasswordResetRequest(rawToken, VALID_PASSWORD, VALID_PASSWORD);
 
         when(uuidTokenProvider.hashToken(rawToken)).thenReturn(hashedToken);
         when(passwordResetTokenRepository.findByTokenHash(hashedToken)).thenReturn(Optional.of(resetToken));
-        when(passwordEncoder.encode(VALID_PASSWORD  )).thenReturn(encodedPassword);
+        when(passwordEncoder.encode(VALID_PASSWORD)).thenReturn(encodedPassword);
 
         authenticationService.confirmPasswordReset(request);
 
@@ -599,6 +600,35 @@ class AuthenticationServiceTest {
 
         verify(jwtEmailService).extractEmail(validVerificationToken);
         verify(accountRepository).findAccountByEmail(validEmail);
+    }
+
+    @DisplayName("""
+            Verifying email with already-used verification link
+            Should fail on second use
+            """)
+    @Test
+    void verifyEmail_error3() {
+        String verificationToken = "cc837471-3c4b-4d77-a825-c4c1cf3a1dc5";
+        String email = "verified@example.com";
+        Account account = Account.builder()
+                .id(ACCOUNT_ID)
+                .email(email)
+                .emailVerified(false)
+                .passwordHash("password-hash")
+                .type(AccountType.THERAPIST)
+                .build();
+
+        when(jwtEmailService.extractEmail(verificationToken)).thenReturn(email);
+        when(accountRepository.findAccountByEmail(email)).thenReturn(Optional.of(account));
+
+        authenticationService.verifyEmail(verificationToken);
+
+        assertThat(account.getEmailVerified()).isTrue();
+        assertThatThrownBy(() -> authenticationService.verifyEmail(verificationToken))
+                .isInstanceOf(PermissionException.class);
+
+        verify(jwtEmailService, times(2)).extractEmail(verificationToken);
+        verify(accountRepository, times(2)).findAccountByEmail(email);
     }
 
 
