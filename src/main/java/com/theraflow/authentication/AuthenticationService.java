@@ -90,7 +90,7 @@ public class AuthenticationService {
         final String email;
         try {
             email = jwtEmailVerificationTokenProvider.extractEmail(token);
-        } catch (ExpiredJwtException e) {
+        } catch (PermissionException e) {
             throw new InvalidCredentialsException(ErrorCode.EMAIL_VERIFICATION_LINK_EXPIRED);
         }
 

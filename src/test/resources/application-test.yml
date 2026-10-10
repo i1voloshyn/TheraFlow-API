@@ -24,5 +24,5 @@ app:
         expiration: 7d #7 days
       email:
         secret: ${JWT_EMAIL_SECRET:ed2097dd9e166b30d08959700ca2324308272efa2230cc748bec84dd7358e278}
-        expiration: 60 #60 minutes
+        expiration: 60m #60 minutes
 

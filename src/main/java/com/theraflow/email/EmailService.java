@@ -15,7 +15,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Service
 public class EmailService {
     private static final String ACCOUNT_VERIFICATION = "Account Verification";
-    private static final String VERIFY_EMAIL_PATH = "/api/v1/accounts/verify-email";
+    private static final String VERIFY_EMAIL_PATH = "/api/v1/auth/verify-email";
     private static final String PASSWORD_RESET_PATH = "/api/v1/password-reset";
 
     @Value("${app.base-url}")
