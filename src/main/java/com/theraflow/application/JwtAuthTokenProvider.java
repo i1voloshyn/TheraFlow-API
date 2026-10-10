@@ -30,7 +30,7 @@ public class JwtAuthTokenProvider {
         String email = claims.getSubject();
         UUID accountId = extractAccountId(claims);
         boolean verified = Boolean.TRUE.equals(claims.get(VERIFIED_CLAIM, Boolean.class));
-        AccountType type = claims.get(ACCOUNT_TYPE_CLAIM, AccountType.class);
+        AccountType type = AccountType.valueOf(claims.get(ACCOUNT_TYPE_CLAIM, String.class));
 
         return new TheraflowUser(accountId, email, null, verified, type);
     }
