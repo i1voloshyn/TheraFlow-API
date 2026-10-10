@@ -3,8 +3,6 @@ package com.theraflow.therapist;
 
 import com.theraflow.authentication.model.AccountType;
 import com.theraflow.application.JwtAuthTokenProvider;
-import com.theraflow.application.JwtProvider;
-import com.theraflow.security.JwtAuthenticationFilter;
 import com.theraflow.security.SecurityConfiguration;
 import com.theraflow.security.exception.CustomAuthenticationEntryPoint;
 import com.theraflow.security.model.TheraflowUser;
@@ -25,30 +23,23 @@ import java.time.Instant;
 import java.util.UUID;
 
 import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(value = TherapistController.class,
-        properties = "jwt.secret=MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE="
-)
-@Import({SecurityConfiguration.class,
-        JwtAuthenticationFilter.class,
-        CustomAuthenticationEntryPoint.class})
+@WebMvcTest(value = TherapistController.class)
+@Import(SecurityConfiguration.class)
 public class TherapistControllerTest {
 
     @Autowired
-    MockMvc mockMvc;
+    private MockMvc mockMvc;
     @MockitoBean
     private TherapistService therapistService;
     @MockitoBean
     private CustomAuthenticationEntryPoint entryPoint;
     @MockitoBean
-    private JwtProvider jwtService;
-    @MockitoBean
-    private JwtAuthTokenProvider authTokenService;
+    private JwtAuthTokenProvider authTokenProvider;
     @MockitoBean
     private UserDetailsService userDetailsService;
 
@@ -68,7 +59,7 @@ public class TherapistControllerTest {
         TherapistResponse response = response(randomAccountId);
 
         when(therapistService.createProfile(request, randomAccountId)).thenReturn(response);
-        when(authTokenService.extractUserDetails(token)).thenReturn(user);
+        when(authTokenProvider.extractUserDetails(token)).thenReturn(user);
 
         mockMvc.perform(post("/api/v1/therapist")
                         .header("Authorization", "Bearer " + token)
@@ -108,7 +99,6 @@ public class TherapistControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(therapistRequestJson())
                         .with(SecurityMockMvcRequestPostProcessors.user(user))
-                        .with(csrf())
                 )
                 .andExpect(status().isForbidden());
     }

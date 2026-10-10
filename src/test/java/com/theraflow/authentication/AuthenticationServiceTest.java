@@ -12,6 +12,7 @@ import com.theraflow.authentication.dto.ConfirmPasswordResetRequest;
 import com.theraflow.authentication.dto.JwtPair;
 import com.theraflow.authentication.dto.LoginRequest;
 import com.theraflow.authentication.model.PasswordResetToken;
+import com.theraflow.config.PasswordLengthProperties;
 import com.theraflow.event.PasswordResetRequest;
 import com.theraflow.exception.EntityNotFoundException;
 import com.theraflow.exception.InvalidCredentialsException;
@@ -62,6 +63,8 @@ import static org.mockito.Mockito.when;
 class AuthenticationServiceTest {
     private static final UUID ACCOUNT_ID = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
     private static final UUID RANDOM_UUID = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
+    private static final String VALID_PASSWORD = "!1ValidPassword";
+    private static final String WEAK_PASSWORD = "WeakPassword";
 
     @Spy
     private Clock clock = Clock.systemUTC();
@@ -90,8 +93,8 @@ class AuthenticationServiceTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
-    @Mock
-    private PasswordValidator passwordValidator;
+    @Spy
+    private PasswordValidator passwordValidator = new PasswordValidator(new PasswordLengthProperties(10, 32));
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -110,7 +113,7 @@ class AuthenticationServiceTest {
     void signUp_error1() {
         AccountRequest request = new AccountRequest(
                 "therapist@example.com",
-                "Valid-password",
+                VALID_PASSWORD,
                 AccountType.THERAPIST);
 
         when(accountRepository.existsByEmail(request.email())).thenReturn(true);
@@ -135,11 +138,12 @@ class AuthenticationServiceTest {
     @DisplayName("Sign up with weak password throws PasswordPolicyException")
     @Test
     void signUp_error2() {
-        String rawPassword = "WeakPassword";
         AccountRequest request = new AccountRequest(
                 "therapist@example.com",
-                rawPassword,
+                WEAK_PASSWORD,
                 AccountType.THERAPIST);
+
+        when(accountRepository.existsByEmail(request.email())).thenReturn(false);
 
         assertThatThrownBy(() -> authenticationService.signUp(request))
                 .isInstanceOf(PasswordPolicyException.class)
@@ -150,7 +154,7 @@ class AuthenticationServiceTest {
                         ));
 
         verify(accountRepository).existsByEmail(request.email());
-        verify(passwordValidator).validate(rawPassword);
+        verify(passwordValidator).validate(WEAK_PASSWORD);
         verifyNoMoreInteractions(accountRepository);
         verifyNoInteractions(
                 passwordEncoder,
@@ -363,7 +367,6 @@ class AuthenticationServiceTest {
     void confirmPasswordReset_success() {
         String rawToken = "raw-reset-token";
         String hashedToken = "hashed-reset-token";
-        String newPassword = "new-password";
         String encodedPassword = "encoded-password";
         Account account = Account.builder()
                 .passwordHash("old-password-hash")
@@ -371,16 +374,16 @@ class AuthenticationServiceTest {
         PasswordResetToken resetToken = new PasswordResetToken(hashedToken, clock.instant().plusSeconds(3600));
         resetToken.setAccount(account);
         resetToken.setUsed(false);
-        ConfirmPasswordResetRequest request = new ConfirmPasswordResetRequest(rawToken, newPassword, newPassword);
+        ConfirmPasswordResetRequest request = new ConfirmPasswordResetRequest(rawToken, VALID_PASSWORD, VALID_PASSWORD  );
 
         when(uuidTokenProvider.hashToken(rawToken)).thenReturn(hashedToken);
         when(passwordResetTokenRepository.findByTokenHash(hashedToken)).thenReturn(Optional.of(resetToken));
-        when(passwordEncoder.encode(newPassword)).thenReturn(encodedPassword);
+        when(passwordEncoder.encode(VALID_PASSWORD  )).thenReturn(encodedPassword);
 
         authenticationService.confirmPasswordReset(request);
 
-        verify(passwordValidator).validate(newPassword);
-        verify(passwordEncoder).encode(newPassword);
+        verify(passwordValidator).validate(VALID_PASSWORD);
+        verify(passwordEncoder).encode(VALID_PASSWORD);
         assertThat(account.getPasswordHash()).isEqualTo(encodedPassword);
         assertThat(resetToken.isUsed()).isTrue();
     }
@@ -396,15 +399,15 @@ class AuthenticationServiceTest {
         String rawToken = "raw-reset-token";
         ConfirmPasswordResetRequest request = new ConfirmPasswordResetRequest(
                 rawToken,
-                "new-password",
-                "different-password"
+                VALID_PASSWORD,
+                VALID_PASSWORD + "mismatch"
         );
 
         assertThatExceptionOfType(PermissionException.class)
                 .isThrownBy(() -> authenticationService.confirmPasswordReset(request))
                 .matches(ex -> ex.getErrorCode().equals(ErrorCode.PASSWORD_NOT_MATCH));
 
-        verify(passwordValidator).validate("new-password");
+        verify(passwordValidator).validate(VALID_PASSWORD);
         verifyNoInteractions(uuidTokenProvider, passwordResetTokenRepository, passwordEncoder);
     }
 
@@ -423,7 +426,7 @@ class AuthenticationServiceTest {
                 hashedToken,
                 clock.instant().minusSeconds(1)
         );
-        ConfirmPasswordResetRequest request = new ConfirmPasswordResetRequest(rawToken, newPassword, newPassword);
+        ConfirmPasswordResetRequest request = new ConfirmPasswordResetRequest(rawToken, VALID_PASSWORD, VALID_PASSWORD);
 
         when(uuidTokenProvider.hashToken(rawToken)).thenReturn(hashedToken);
         when(passwordResetTokenRepository.findByTokenHash(hashedToken)).thenReturn(Optional.of(expiredResetToken));
@@ -432,7 +435,7 @@ class AuthenticationServiceTest {
                 .isThrownBy(() -> authenticationService.confirmPasswordReset(request))
                 .matches(ex -> ex.getErrorCode().equals(ErrorCode.PASSWORD_RESET_TOKEN_INVALID));
 
-        verify(passwordValidator).validate(newPassword);
+        verify(passwordValidator).validate(VALID_PASSWORD);
         verify(uuidTokenProvider).hashToken(rawToken);
         verify(passwordResetTokenRepository).findByTokenHash(hashedToken);
         verifyNoInteractions(passwordEncoder);

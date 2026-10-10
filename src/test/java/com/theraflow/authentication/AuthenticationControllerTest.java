@@ -1,6 +1,7 @@
 package com.theraflow.authentication;
 
 import com.theraflow.application.JwtAuthTokenProvider;
+import com.theraflow.application.JwtProvider;
 import com.theraflow.authentication.dto.AccountRequest;
 import com.theraflow.authentication.dto.AccountResponse;
 import com.theraflow.authentication.model.AccountType;
@@ -19,6 +20,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -43,24 +45,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(value = AuthenticationController.class)
-@Import({SecurityConfiguration.class, CustomAuthenticationEntryPoint.class, JwtAuthenticationFilter.class})
+@Import({SecurityConfiguration.class})
 public class AuthenticationControllerTest {
 
     @MockitoBean
     private AuthenticationService authenticationService;
     @MockitoBean
-    private JwtAuthTokenProvider jwtAuthTokenProvider;
+    private UserDetailsService userDetailsService;
+    @MockitoBean
+    private JwtAuthTokenProvider authTokenProvider;
     @MockitoBean
     private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
-    @MockitoBean
-    private  JwtAuthenticationFilter jwtAuthenticationFilter;
-    @MockitoBean
-    private UserDetailsService userDetailsService;
     @Autowired
     private MockMvc mockMvc;
     @Autowired
     private ObjectMapper objectMapper;
-
 
     @DisplayName("Should create and return new account for valid input data")
     @Test
@@ -124,32 +123,13 @@ public class AuthenticationControllerTest {
         verifyNoInteractions(authenticationService);
     }
 
-
-    @DisplayName("Should reject email verification for an unauthenticated account")
-    @Test
-    void emailVerification_error1() throws Exception {
-        mockMvc.perform(get("/api/v1/auth/verify-email")
-                        .param("access", "verification-access"))
-                .andExpect(status().isUnauthorized());
-
-        verifyNoInteractions(authenticationService);
-    }
-
     @DisplayName("Should verify email for an authenticated account")
     @Test
     void emailVerification_success() throws Exception {
         String token = "verification-access";
-        TheraflowUser user = new TheraflowUser(
-                UUID.randomUUID(),
-                "valid-email@gmail.com",
-                "password_hash",
-                true,
-                AccountType.THERAPIST
-        );
-
         mockMvc.perform(get("/api/v1/auth/verify-email")
                         .param("token", token)
-                        .with(user(user)))
+                      )
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
 
@@ -194,6 +174,13 @@ public class AuthenticationControllerTest {
     void changePassword_error() throws Exception {
         ErrorCode expected = ErrorCode.PASSWORD_INCORRECT;
         UUID accountId = UUID.randomUUID();
+        TheraflowUser user = new TheraflowUser(
+                accountId,
+                "valid-email",
+                "password_hash",
+                true,
+                AccountType.THERAPIST
+        );
 
         String oldPassword = "wrong-password";
         String newPassword = "new-password";
@@ -209,6 +196,7 @@ public class AuthenticationControllerTest {
                                 "newPassword": "new-password"
                                 }
                                 """)
+                        .with(user(user))
                 )
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.errorCode").value(expected.name()));
